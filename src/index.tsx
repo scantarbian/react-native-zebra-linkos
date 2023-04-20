@@ -20,3 +20,10 @@ const ZebraLinkOS = NativeModules.ZebraLinkOS
 export function multiply(a: number, b: number): Promise<number> {
   return ZebraLinkOS.multiply(a, b);
 }
+
+export async function writeTCP(
+  ipAddress: string,
+  zpl: string
+): Promise<boolean> {
+  return await ZebraLinkOS.writeTCP(ipAddress, zpl);
+}
