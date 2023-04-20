@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  ZebraLinkosExample
+//  ZebraLinkOSExample
 //
 
 import Foundation

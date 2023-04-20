@@ -5,7 +5,7 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.Promise
 
-class ZebraLinkosModule(reactContext: ReactApplicationContext) :
+class ZebraLinkOSModule(reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
 
   override fun getName(): String {
@@ -20,6 +20,6 @@ class ZebraLinkosModule(reactContext: ReactApplicationContext) :
   }
 
   companion object {
-    const val NAME = "ZebraLinkos"
+    const val NAME = "ZebraLinkOS"
   }
 }

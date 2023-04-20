@@ -6,8 +6,8 @@ const LINKING_ERROR =
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo Go\n';
 
-const ZebraLinkos = NativeModules.ZebraLinkos
-  ? NativeModules.ZebraLinkos
+const ZebraLinkOS = NativeModules.ZebraLinkOS
+  ? NativeModules.ZebraLinkOS
   : new Proxy(
       {},
       {
@@ -18,5 +18,5 @@ const ZebraLinkos = NativeModules.ZebraLinkos
     );
 
 export function multiply(a: number, b: number): Promise<number> {
-  return ZebraLinkos.multiply(a, b);
+  return ZebraLinkOS.multiply(a, b);
 }
