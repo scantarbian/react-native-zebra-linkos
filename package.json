@@ -1,7 +1,7 @@
 {
   "name": "react-native-zebra-linkos",
-  "version": "0.1.0",
-  "description": "test",
+  "version": "0.1.1",
+  "description": "Zebra LinkOS module for React Native",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
   "types": "lib/typescript/index.d.ts",
