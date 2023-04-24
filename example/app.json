@@ -1,4 +1,9 @@
 {
   "name": "ZebraLinkOSExample",
-  "displayName": "ZebraLinkOSExample"
+  "displayName": "ZebraLinkOSExample",
+  "extra": {
+    "eas": {
+      "projectId": "383e4000-7717-4c12-ae83-787d3d8a5334"
+    }
+  }
 }
