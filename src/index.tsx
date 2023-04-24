@@ -27,3 +27,7 @@ export async function writeTCP(
 ): Promise<boolean> {
   return await ZebraLinkOS.writeTCP(ipAddress, zpl);
 }
+
+export async function scanNetwork(): Promise<any> {
+  return await ZebraLinkOS.scanNetwork();
+}

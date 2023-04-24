@@ -2,7 +2,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 
 import { StyleSheet, View, Text, TextInput, Button } from 'react-native';
-import { multiply, writeTCP } from 'react-native-zebra-linkos';
+import { multiply, writeTCP, scanNetwork } from 'react-native-zebra-linkos';
 
 export default function App() {
   const [ip, setIp] = useState('');
@@ -26,6 +26,16 @@ export default function App() {
     }
   };
 
+  const scan = async () => {
+    console.log('Scanning network...');
+    try {
+      const response = await scanNetwork();
+      console.log(response);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text>Result: {result}</Text>
@@ -36,6 +46,7 @@ export default function App() {
         style={styles.input}
       />
       <Button title="Test TCP" onPress={sendTestTCP} />
+      <Button title="Scan Network" onPress={scan} />
     </View>
   );
 }
