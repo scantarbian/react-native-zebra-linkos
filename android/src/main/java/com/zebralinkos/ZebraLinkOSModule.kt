@@ -10,6 +10,11 @@ import com.zebra.sdk.comm.Connection
 import com.zebra.sdk.comm.BluetoothConnection
 import com.zebra.sdk.comm.ConnectionException
 import com.zebra.sdk.comm.TcpConnection
+// Zebra Network Discovery
+import com.zebra.sdk.printer.discovery.DiscoveredPrinter
+import com.zebra.sdk.printer.discovery.DiscoveryException
+import com.zebra.sdk.printer.discovery.DiscoveryHandler
+import com.zebra.sdk.printer.discovery.NetworkDiscoverer
 
 class ZebraLinkOSModule(reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
@@ -44,6 +49,37 @@ class ZebraLinkOSModule(reactContext: ReactApplicationContext) :
       promise.reject("E_TCP_CONNECTION", e.localizedMessage, e)
     } finally {
       printerConnection.close()
+    }
+  }
+
+  @ReactMethod
+  fun scanNetwork(promise: Promise) {
+    val discoveryHandler = object : DiscoveryHandler {
+      val printers = mutableListOf<DiscoveredPrinter>()
+
+      override fun foundPrinter(printer: DiscoveredPrinter) {
+        printers.add(printer)
+      }
+
+      override fun discoveryFinished() {
+        Log.d(NAME, "Discovery finished")
+        printers.forEach { printer -> println(printer) }
+      }
+
+      override fun discoveryError(message: String?) {
+        Log.e(NAME, "Discovery error: $message")
+      }
+    }
+
+    try {
+      Log.d(NAME, "Going to scan network")
+      NetworkDiscoverer.findPrinters(discoveryHandler)
+      promise.resolve(discoveryHandler.printers)
+    } catch (e: DiscoveryException) {
+      Log.d(NAME, "Error scanning network: ${e.localizedMessage}")
+      e.localizedMessage?.let { Log.e(NAME, it) }
+      e.printStackTrace()
+      promise.reject("E_NETWORK_SCAN", e.localizedMessage, e)
     }
   }
 
