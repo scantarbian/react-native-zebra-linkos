@@ -60,11 +60,12 @@ class ZebraLinkOSModule(reactContext: ReactApplicationContext) :
 
       override fun foundPrinter(printer: DiscoveredPrinter) {
         printers.add(printer)
+        Log.d(NAME, "Found printer: ${printer.address}")
       }
 
       override fun discoveryFinished() {
         Log.d(NAME, "Discovery finished")
-        printers.forEach { printer -> println(printer) }
+        promise.resolve(Arguments.makeNativeArray(this.printers))
       }
 
       override fun discoveryError(message: String?) {
@@ -75,7 +76,6 @@ class ZebraLinkOSModule(reactContext: ReactApplicationContext) :
     try {
       Log.d(NAME, "Going to scan network")
       NetworkDiscoverer.findPrinters(discoveryHandler)
-      promise.resolve(Arguments.makeNativeArray(discoveryHandler.printers))
     } catch (e: DiscoveryException) {
       Log.d(NAME, "Error scanning network: ${e.localizedMessage}")
       e.localizedMessage?.let { Log.e(NAME, it) }
