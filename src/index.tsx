@@ -28,6 +28,6 @@ export async function writeTCP(
   return await ZebraLinkOS.writeTCP(ipAddress, zpl);
 }
 
-export async function scanNetwork(): Promise<any> {
+export async function scanNetwork(): Promise<string[]> {
   return await ZebraLinkOS.scanNetwork();
 }

@@ -4,6 +4,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.Arguments
 import android.util.Log
 // Zebra Connection Modules
 import com.zebra.sdk.comm.Connection
@@ -74,7 +75,7 @@ class ZebraLinkOSModule(reactContext: ReactApplicationContext) :
     try {
       Log.d(NAME, "Going to scan network")
       NetworkDiscoverer.findPrinters(discoveryHandler)
-      promise.resolve(discoveryHandler.printers)
+      promise.resolve(Arguments.makeNativeArray(discoveryHandler.printers))
     } catch (e: DiscoveryException) {
       Log.d(NAME, "Error scanning network: ${e.localizedMessage}")
       e.localizedMessage?.let { Log.e(NAME, it) }
