@@ -16,6 +16,11 @@ import com.zebra.sdk.printer.discovery.DiscoveredPrinter
 import com.zebra.sdk.printer.discovery.DiscoveryException
 import com.zebra.sdk.printer.discovery.DiscoveryHandler
 import com.zebra.sdk.printer.discovery.NetworkDiscoverer
+// Zebra Bluetooth Discovery
+import com.zebra.sdk.printer.discovery.BluetoothDiscoverer
+import com.zebra.sdk.printer.discovery.DiscoveredPrinterBluetooth
+import org.json.JSONArray
+import org.json.JSONObject
 
 class ZebraLinkOSModule(reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
@@ -77,10 +82,52 @@ class ZebraLinkOSModule(reactContext: ReactApplicationContext) :
       Log.d(NAME, "Going to scan network")
       NetworkDiscoverer.findPrinters(discoveryHandler)
     } catch (e: DiscoveryException) {
-      Log.d(NAME, "Error scanning network: ${e.localizedMessage}")
+      Log.e(NAME, "Error scanning network: ${e.localizedMessage}")
       e.localizedMessage?.let { Log.e(NAME, it) }
       e.printStackTrace()
       promise.reject("E_NETWORK_SCAN", e.localizedMessage, e)
+    }
+  }
+
+  @ReactMethod
+  fun scanBluetooth(promise: Promise) {
+    val discoveryHandler = object : DiscoveryHandler{
+        val foundPrinterList = ArrayList<Map<String, String>>()
+
+        override fun foundPrinter(printer: DiscoveredPrinter) {
+          val foundPrinter = HashMap<String, String>()
+          Log.d(NAME, "Found printer: ${printer.address}")
+          foundPrinter["address"] = printer.address
+          foundPrinter["name"] = (printer as DiscoveredPrinterBluetooth).friendlyName
+          foundPrinterList.add(foundPrinter)
+        }
+
+        override fun discoveryFinished() {
+          Log.d(NAME, "Bluetooth discovery finished")
+          val jsonObj = ArrayList<JSONObject>()
+
+          for (printer in foundPrinterList) {
+            jsonObj.add(JSONObject(printer))
+          }
+
+          val foundPrinterJSON = JSONArray(jsonObj)
+
+          promise.resolve(foundPrinterJSON.toString())
+        }
+
+        override fun discoveryError(message: String?) {
+          Log.e(NAME, "Discovery error: $message")
+        }
+      }
+
+      try {
+        Log.d(NAME, "Going to scan bluetooth")
+        BluetoothDiscoverer.findPrinters(this.reactApplicationContext, discoveryHandler)
+      } catch (e: DiscoveryException) {
+        Log.e(NAME, "Error scanning bluetooth: ${e.localizedMessage}")
+        e.localizedMessage?.let { Log.e(NAME, it) }
+        e.printStackTrace()
+        promise.reject("E_BLUETOOTH_SCAN", e.localizedMessage, e)
     }
   }
 

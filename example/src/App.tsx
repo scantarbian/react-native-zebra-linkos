@@ -10,7 +10,12 @@ import {
   ToastAndroid,
   PermissionsAndroid,
 } from 'react-native';
-import { multiply, writeTCP, scanNetwork } from 'react-native-zebra-linkos';
+import {
+  multiply,
+  writeTCP,
+  scanNetwork,
+  scanBluetooth,
+} from 'react-native-zebra-linkos';
 
 export default function App() {
   const [ip, setIp] = useState('');
@@ -48,6 +53,28 @@ export default function App() {
     }
   };
 
+  const requestPermissionsBluetooth = async () => {
+    try {
+      const granted = await PermissionsAndroid.requestMultiple([
+        'android.permission.BLUETOOTH_SCAN',
+        'android.permission.BLUETOOTH_CONNECT',
+      ]);
+
+      if (
+        granted['android.permission.BLUETOOTH_SCAN'] ===
+          PermissionsAndroid.RESULTS.GRANTED &&
+        granted['android.permission.BLUETOOTH_CONNECT'] ===
+          PermissionsAndroid.RESULTS.GRANTED
+      ) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (err) {
+      console.error(err);
+      return false;
+    }
+  };
   const sendTestTCP = async (targetIp = ip) => {
     console.log('Sending test TCP...');
     ToastAndroid.show(`Sending test TCP to ${targetIp}`, ToastAndroid.SHORT);
@@ -80,6 +107,28 @@ export default function App() {
       console.error(error);
     } finally {
       setIsScanning(false);
+    }
+  };
+
+  const scanBT = async () => {
+    console.log('Scanning bluetooth...');
+    ToastAndroid.show(`Starting bluetooth scan`, ToastAndroid.SHORT);
+    // setIsScanning(true);
+    try {
+      const permissions = await requestPermissionsBluetooth();
+
+      if (!permissions) {
+        throw new Error('Permissions not granted');
+      }
+
+      const result = await scanBluetooth();
+      // setDevices(result);
+      ToastAndroid.show(`Found ${result.length} devices`, ToastAndroid.SHORT);
+      console.log('scanResult', result);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      // setIsScanning(false);
     }
   };
 
@@ -125,6 +174,7 @@ export default function App() {
       >
         {displayDevices()}
       </View>
+      <Button title="Scan Bluetooth" onPress={scanBT} />
     </View>
   );
 }

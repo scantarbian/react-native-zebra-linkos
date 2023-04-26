@@ -31,3 +31,7 @@ export async function writeTCP(
 export async function scanNetwork(): Promise<string[]> {
   return await ZebraLinkOS.scanNetwork();
 }
+
+export async function scanBluetooth(): Promise<any> {
+  return await ZebraLinkOS.scanBluetooth();
+}
