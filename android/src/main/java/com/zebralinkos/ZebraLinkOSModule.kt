@@ -74,7 +74,8 @@ class ZebraLinkOSModule(reactContext: ReactApplicationContext) :
       }
 
       override fun discoveryError(message: String?) {
-        Log.e(NAME, "Discovery error: $message")
+        Log.e(NAME, "Network discovery error: $message")
+        promise.reject("E_NETWORK_SCAN", message)
       }
     }
 
@@ -116,7 +117,8 @@ class ZebraLinkOSModule(reactContext: ReactApplicationContext) :
         }
 
         override fun discoveryError(message: String?) {
-          Log.e(NAME, "Discovery error: $message")
+          Log.e(NAME, "Bluetooth discovery error: $message")
+          promise.reject("E_BLUETOOTH_SCAN", message)
         }
       }
 
