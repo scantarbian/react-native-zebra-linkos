@@ -22,6 +22,7 @@ export default function App() {
   const [result, setResult] = useState<number | undefined>();
   const [devices, setDevices] = useState<string[]>([]);
   const [isScanning, setIsScanning] = useState(false);
+  const [error, setError] = useState<string | undefined>();
 
   const ZPL_TEST_STRING =
     '^XA^FO17,16^GB379,371,8^FS^FT65,255^A0N,135,134^FDTEST^FS^XZ';
@@ -92,9 +93,10 @@ export default function App() {
   };
 
   const scan = async () => {
+    setError(undefined);
     console.log('Scanning network...');
     ToastAndroid.show(`Starting network scan`, ToastAndroid.SHORT);
-    setIsScanning(true);
+
     try {
       const permissions = await requestPermissions();
 
@@ -102,12 +104,15 @@ export default function App() {
         throw new Error('Permissions not granted');
       }
 
+      setIsScanning(true);
       const result = await scanNetwork();
       setDevices(result);
       ToastAndroid.show(`Found ${result.length} devices`, ToastAndroid.SHORT);
       console.log('scanResult', result);
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error('Network Scan Error', error);
+      setError(error.toString());
+      ToastAndroid.show(`Network Scan Error`, ToastAndroid.SHORT);
     } finally {
       setIsScanning(false);
     }
@@ -161,6 +166,17 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text>Result: {result}</Text>
+      {error !== undefined && (
+        <Text
+          style={{
+            padding: 4,
+            backgroundColor: 'red',
+            color: 'white',
+          }}
+        >
+          Error: {error}
+        </Text>
+      )}
       <TextInput
         placeholder="IP Address"
         inputMode="numeric"

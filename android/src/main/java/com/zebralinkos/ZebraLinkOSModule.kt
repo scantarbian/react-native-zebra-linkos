@@ -61,7 +61,7 @@ class ZebraLinkOSModule(reactContext: ReactApplicationContext) :
   @ReactMethod
   fun scanNetwork(promise: Promise) {
     val discoveryHandler = object : DiscoveryHandler {
-      val printers = mutableListOf<DiscoveredPrinter>()
+      val printers = arrayListOf<DiscoveredPrinter>()
 
       override fun foundPrinter(printer: DiscoveredPrinter) {
         printers.add(printer)
