@@ -64,8 +64,15 @@ class ZebraLinkOSModule(reactContext: ReactApplicationContext) :
       val printers = arrayListOf<DiscoveredPrinter>()
 
       override fun foundPrinter(printer: DiscoveredPrinter) {
-        printers.add(printer)
-        Log.d(NAME, "Found printer: ${printer.address}")
+        try {
+          printers.add(printer)
+          Log.d(NAME, "Found printer: ${printer.address}")
+        } catch (e: Exception) {
+          Log.e(NAME, "Error adding printer to list: ${e.localizedMessage}")
+          promise.reject("E_NETWORK_SCAN", e.localizedMessage, e)
+          e.localizedMessage?.let { Log.e(NAME, it) }
+          e.printStackTrace()
+        }
       }
 
       override fun discoveryFinished() {
