@@ -16,8 +16,13 @@ import {
   scanNetwork,
   // scanBluetooth,
 } from 'react-native-zebra-linkos';
+import * as Sentry from '@sentry/react-native';
 
-export default function App() {
+Sentry.init({
+  dsn: 'https://6799a339036c47199903fc49b124d592@o4505087032623104.ingest.sentry.io/4505087045664768',
+});
+
+const App = () => {
   const [ip, setIp] = useState('');
   const [result, setResult] = useState<number | undefined>();
   const [devices, setDevices] = useState<string[]>([]);
@@ -194,9 +199,12 @@ export default function App() {
         {displayDevices()}
       </View>
       {/* <Button title="Scan Bluetooth" onPress={scanBT} /> */}
+      <Button title="Crash" onPress={() => Sentry.nativeCrash()} />
     </View>
   );
-}
+};
+
+export default Sentry.wrap(App);
 
 const styles = StyleSheet.create({
   container: {

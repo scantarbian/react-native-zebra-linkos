@@ -13,6 +13,7 @@ import com.zebra.sdk.comm.ConnectionException
 import com.zebra.sdk.comm.TcpConnection
 // Zebra Network Discovery
 import com.zebra.sdk.printer.discovery.DiscoveredPrinter
+import com.zebra.sdk.printer.discovery.DiscoveredPrinterNetwork
 import com.zebra.sdk.printer.discovery.DiscoveryException
 import com.zebra.sdk.printer.discovery.DiscoveryHandler
 import com.zebra.sdk.printer.discovery.NetworkDiscoverer
@@ -61,11 +62,11 @@ class ZebraLinkOSModule(reactContext: ReactApplicationContext) :
   @ReactMethod
   fun scanNetwork(promise: Promise) {
     val discoveryHandler = object : DiscoveryHandler {
-      val printers = arrayListOf<DiscoveredPrinter>()
+      val printers = arrayListOf<String>()
 
       override fun foundPrinter(printer: DiscoveredPrinter) {
         try {
-          printers.add(printer)
+          this.printers.add((printer as DiscoveredPrinterNetwork).address)
           Log.d(NAME, "Found printer: ${printer.address}")
         } catch (e: Exception) {
           Log.e(NAME, "Error adding printer to list: ${e.localizedMessage}")
