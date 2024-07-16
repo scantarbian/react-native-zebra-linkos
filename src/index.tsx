@@ -17,10 +17,6 @@ const ZebraLinkOS = NativeModules.ZebraLinkOS
       }
     );
 
-export function multiply(a: number, b: number): Promise<number> {
-  return ZebraLinkOS.multiply(a, b);
-}
-
 export async function writeTCP(
   ipAddress: string,
   zpl: string
@@ -32,6 +28,6 @@ export async function scanNetwork(): Promise<string[]> {
   return await ZebraLinkOS.scanNetwork();
 }
 
-export async function scanBluetooth(): Promise<any> {
+export async function scanBluetooth(): Promise<string[]> {
   return await ZebraLinkOS.scanBluetooth();
 }

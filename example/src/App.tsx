@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 import {
   StyleSheet,
@@ -11,10 +11,9 @@ import {
   PermissionsAndroid,
 } from 'react-native';
 import {
-  multiply,
   writeTCP,
   scanNetwork,
-  // scanBluetooth,
+  scanBluetooth,
 } from 'react-native-zebra-linkos';
 import * as Sentry from '@sentry/react-native';
 
@@ -24,17 +23,12 @@ Sentry.init({
 
 const App = () => {
   const [ip, setIp] = useState('');
-  const [result, setResult] = useState<number | undefined>();
   const [devices, setDevices] = useState<string[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | undefined>();
 
   const ZPL_TEST_STRING =
     '^XA^FO17,16^GB379,371,8^FS^FT65,255^A0N,135,134^FDTEST^FS^XZ';
-
-  useEffect(() => {
-    multiply(3, 7).then(setResult);
-  }, []);
 
   const requestPermissions = async () => {
     try {
@@ -123,27 +117,27 @@ const App = () => {
     }
   };
 
-  // const scanBT = async () => {
-  //   console.log('Scanning bluetooth...');
-  //   ToastAndroid.show(`Starting bluetooth scan`, ToastAndroid.SHORT);
-  //   // setIsScanning(true);
-  //   try {
-  //     const permissions = await requestPermissionsBluetooth();
+  const scanBT = async () => {
+    console.log('Scanning bluetooth...');
+    ToastAndroid.show(`Starting bluetooth scan`, ToastAndroid.SHORT);
+    // setIsScanning(true);
+    try {
+      const permissions = await requestPermissionsBluetooth();
 
-  //     if (!permissions) {
-  //       throw new Error('Permissions not granted');
-  //     }
+      if (!permissions) {
+        throw new Error('Permissions not granted');
+      }
 
-  //     const result = await scanBluetooth();
-  //     // setDevices(result);
-  //     ToastAndroid.show(`Found ${result.length} devices`, ToastAndroid.SHORT);
-  //     console.log('scanResult', result);
-  //   } catch (error) {
-  //     console.error(error);
-  //   } finally {
-  //     // setIsScanning(false);
-  //   }
-  // };
+      const result = await scanBluetooth();
+      // setDevices(result);
+      ToastAndroid.show(`Found ${result.length} devices`, ToastAndroid.SHORT);
+      console.log('scanResult', result);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsScanning(false);
+    }
+  };
 
   const displayDevices = () => {
     if (isScanning) {
@@ -198,8 +192,7 @@ const App = () => {
       >
         {displayDevices()}
       </View>
-      {/* <Button title="Scan Bluetooth" onPress={scanBT} /> */}
-      <Button title="Crash" onPress={() => Sentry.nativeCrash()} />
+      <Button title="Scan Bluetooth" onPress={scanBT} />
     </View>
   );
 };
