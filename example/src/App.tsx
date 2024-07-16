@@ -55,28 +55,28 @@ const App = () => {
     }
   };
 
-  // const requestPermissionsBluetooth = async () => {
-  //   try {
-  //     const granted = await PermissionsAndroid.requestMultiple([
-  //       'android.permission.BLUETOOTH_SCAN',
-  //       'android.permission.BLUETOOTH_CONNECT',
-  //     ]);
+  const requestPermissionsBluetooth = async () => {
+    try {
+      const granted = await PermissionsAndroid.requestMultiple([
+        'android.permission.BLUETOOTH_SCAN',
+        'android.permission.BLUETOOTH_CONNECT',
+      ]);
 
-  //     if (
-  //       granted['android.permission.BLUETOOTH_SCAN'] ===
-  //         PermissionsAndroid.RESULTS.GRANTED &&
-  //       granted['android.permission.BLUETOOTH_CONNECT'] ===
-  //         PermissionsAndroid.RESULTS.GRANTED
-  //     ) {
-  //       return true;
-  //     } else {
-  //       return false;
-  //     }
-  //   } catch (err) {
-  //     console.error(err);
-  //     return false;
-  //   }
-  // };
+      if (
+        granted['android.permission.BLUETOOTH_SCAN'] ===
+          PermissionsAndroid.RESULTS.GRANTED &&
+        granted['android.permission.BLUETOOTH_CONNECT'] ===
+          PermissionsAndroid.RESULTS.GRANTED
+      ) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (err) {
+      console.error(err);
+      return false;
+    }
+  };
 
   const sendTestTCP = async (targetIp = ip) => {
     console.log('Sending test TCP...');
@@ -91,7 +91,7 @@ const App = () => {
     }
   };
 
-  const scan = async () => {
+  const scanTCP = async () => {
     setError(undefined);
     console.log('Scanning network...');
     ToastAndroid.show(`Starting network scan`, ToastAndroid.SHORT);
@@ -108,9 +108,8 @@ const App = () => {
       setDevices(result);
       ToastAndroid.show(`Found ${result.length} devices`, ToastAndroid.SHORT);
       console.log('scanResult', result);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Network Scan Error', error);
-      setError(error.toString());
       ToastAndroid.show(`Network Scan Error`, ToastAndroid.SHORT);
     } finally {
       setIsScanning(false);
@@ -151,12 +150,17 @@ const App = () => {
     return devices.map((device, id) => {
       return (
         <View
+          key={`device-${id}`}
           style={{
             flexDirection: 'row',
           }}
         >
-          <Text key={id}>{device}</Text>
-          <Button title="Send" onPress={() => sendTestTCP(device)} />
+          <Text key={`device-${id}-text`}>{device}</Text>
+          <Button
+            key={`device-${id}-button`}
+            title="Send"
+            onPress={() => sendTestTCP(device)}
+          />
         </View>
       );
     });
@@ -164,7 +168,6 @@ const App = () => {
 
   return (
     <View style={styles.container}>
-      <Text>Result: {result}</Text>
       {error !== undefined && (
         <Text
           style={{
@@ -184,7 +187,7 @@ const App = () => {
         style={styles.input}
       />
       <Button title="Test TCP" onPress={() => sendTestTCP()} />
-      <Button title="Scan Network" onPress={scan} />
+      <Button title="Scan Network" onPress={scanTCP} />
       <View
         style={{
           flexDirection: 'column',
