@@ -9,15 +9,15 @@
     "pods": "pod-install --quiet"
   },
   "dependencies": {
-    "@sentry/react-native": "^5.4.0",
-    "react": "18.2.0",
-    "react-native": "0.71.6"
+    "@sentry/react-native": "^5.26.0",
+    "react": "^18.3.1",
+    "react-native": "^0.74.3"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0",
-    "@babel/preset-env": "^7.20.0",
-    "@babel/runtime": "^7.20.0",
-    "babel-plugin-module-resolver": "^4.1.0",
-    "metro-react-native-babel-preset": "0.73.9"
+    "@babel/core": "^7.24.9",
+    "@babel/preset-env": "^7.24.8",
+    "@babel/runtime": "^7.24.8",
+    "babel-plugin-module-resolver": "^5.0.2",
+    "metro-react-native-babel-preset": "^0.77.0"
   }
 }
