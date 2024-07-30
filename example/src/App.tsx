@@ -13,6 +13,7 @@ import {
   writeTCP,
   scanNetwork,
   scanBluetooth,
+  scanBluetoothLE,
 } from 'react-native-zebra-linkos';
 
 const App = () => {
@@ -112,7 +113,7 @@ const App = () => {
 
   const scanBT = async () => {
     console.log('Scanning bluetooth...');
-    ToastAndroid.show(`Starting bluetooth scan`, ToastAndroid.SHORT);
+    ToastAndroid.show(`Starting BT scan`, ToastAndroid.SHORT);
     setIsScanning(true);
     try {
       const permissions = await requestPermissionsBluetooth();
@@ -122,6 +123,29 @@ const App = () => {
       }
 
       const result = await scanBluetooth();
+      console.log('scanResult', result);
+      console.log('result type', typeof result);
+      setDevices(result);
+      ToastAndroid.show(`Found ${result.length} devices`, ToastAndroid.SHORT);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const scanBTLE = async () => {
+    console.log('Scanning bluetooth low energy...');
+    ToastAndroid.show(`Starting BTLE scan`, ToastAndroid.SHORT);
+    setIsScanning(true);
+    try {
+      const permissions = await requestPermissionsBluetooth();
+
+      if (!permissions) {
+        throw new Error('Permissions not granted');
+      }
+
+      const result = await scanBluetoothLE();
       console.log('scanResult', result);
       console.log('result type', typeof result);
       setDevices(result);
@@ -204,6 +228,7 @@ const App = () => {
       <Button title="Test TCP" onPress={() => sendTestTCP()} />
       <Button title="Scan Network" onPress={scanTCP} />
       <Button title="Scan Bluetooth" onPress={scanBT} />
+      <Button title="Scan Bluetooth LE" onPress={scanBTLE} />
       <View
         style={{
           flexDirection: 'column',

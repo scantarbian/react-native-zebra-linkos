@@ -14,3 +14,7 @@ export async function scanNetwork(): Promise<string[]> {
 export async function scanBluetooth(): Promise<string[]> {
   return await ZebraLinkos.scanBluetooth();
 }
+
+export async function scanBluetoothLE(): Promise<string[]> {
+  return await ZebraLinkos.scanBluetoothLE();
+}
