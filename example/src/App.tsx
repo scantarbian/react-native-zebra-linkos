@@ -99,9 +99,9 @@ const App = () => {
 
       setIsScanning(true);
       const result = await scanNetwork();
+      console.log('scanResult', result);
       setDevices(result);
       ToastAndroid.show(`Found ${result.length} devices`, ToastAndroid.SHORT);
-      console.log('scanResult', result);
     } catch (err) {
       console.error('Network Scan Error', err);
       ToastAndroid.show(`Network Scan Error`, ToastAndroid.SHORT);
@@ -122,9 +122,10 @@ const App = () => {
       }
 
       const result = await scanBluetooth();
+      console.log('scanResult', result);
+      console.log('result type', typeof result);
       setDevices(result);
       ToastAndroid.show(`Found ${result.length} devices`, ToastAndroid.SHORT);
-      console.log('scanResult', result);
     } catch (err) {
       console.error(err);
     } finally {
@@ -134,11 +135,31 @@ const App = () => {
 
   const displayDevices = () => {
     if (isScanning) {
-      return <Text>Scanning...</Text>;
+      return (
+        <Text
+          style={{
+            padding: 4,
+            backgroundColor: 'red',
+            color: 'white',
+          }}
+        >
+          Scanning...
+        </Text>
+      );
     }
 
-    if (devices.length === 0) {
-      return <Text>No devices found</Text>;
+    if (!devices || devices.length === 0) {
+      return (
+        <Text
+          style={{
+            padding: 4,
+            backgroundColor: 'red',
+            color: 'white',
+          }}
+        >
+          No devices found
+        </Text>
+      );
     }
 
     return devices.map((device, id) => {
@@ -182,6 +203,7 @@ const App = () => {
       />
       <Button title="Test TCP" onPress={() => sendTestTCP()} />
       <Button title="Scan Network" onPress={scanTCP} />
+      <Button title="Scan Bluetooth" onPress={scanBT} />
       <View
         style={{
           flexDirection: 'column',
@@ -189,7 +211,6 @@ const App = () => {
       >
         {displayDevices()}
       </View>
-      <Button title="Scan Bluetooth" onPress={scanBT} />
     </View>
   );
 };
@@ -201,6 +222,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    rowGap: 20,
   },
   box: {
     width: 60,
@@ -212,5 +234,6 @@ const styles = StyleSheet.create({
     margin: 12,
     borderWidth: 1,
     padding: 10,
+    borderColor: 'white',
   },
 });
