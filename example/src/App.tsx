@@ -80,8 +80,8 @@ const App = () => {
       const response = await writeTCP(targetIp, ZPL_TEST_STRING);
       ToastAndroid.show(`TCP sent to ${targetIp}`, ToastAndroid.SHORT);
       console.log(response);
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -102,8 +102,8 @@ const App = () => {
       setDevices(result);
       ToastAndroid.show(`Found ${result.length} devices`, ToastAndroid.SHORT);
       console.log('scanResult', result);
-    } catch (error) {
-      console.error('Network Scan Error', error);
+    } catch (err) {
+      console.error('Network Scan Error', err);
       ToastAndroid.show(`Network Scan Error`, ToastAndroid.SHORT);
     } finally {
       setIsScanning(false);
@@ -113,7 +113,7 @@ const App = () => {
   const scanBT = async () => {
     console.log('Scanning bluetooth...');
     ToastAndroid.show(`Starting bluetooth scan`, ToastAndroid.SHORT);
-    // setIsScanning(true);
+    setIsScanning(true);
     try {
       const permissions = await requestPermissionsBluetooth();
 
@@ -122,11 +122,11 @@ const App = () => {
       }
 
       const result = await scanBluetooth();
-      // setDevices(result);
+      setDevices(result);
       ToastAndroid.show(`Found ${result.length} devices`, ToastAndroid.SHORT);
       console.log('scanResult', result);
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
     } finally {
       setIsScanning(false);
     }
