@@ -15,10 +15,15 @@ import {
   scanBluetooth,
   scanBluetoothLE,
 } from 'react-native-zebra-linkos';
+import type {
+  DiscoveredPrinter,
+  DiscoveredPrinterBluetooth,
+  DiscoveredPrinterBluetoothLe,
+} from 'react-native-zebra-linkos';
 
 const App = () => {
   const [ip, setIp] = useState('');
-  const [devices, setDevices] = useState<string[]>([]);
+  const [devices, setDevices] = useState<DiscoveredPrinter[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | undefined>();
 
@@ -124,7 +129,6 @@ const App = () => {
 
       const result = await scanBluetooth();
       console.log('scanResult', result);
-      console.log('result type', typeof result);
       setDevices(result);
       ToastAndroid.show(`Found ${result.length} devices`, ToastAndroid.SHORT);
     } catch (err) {
@@ -147,7 +151,6 @@ const App = () => {
 
       const result = await scanBluetoothLE();
       console.log('scanResult', result);
-      console.log('result type', typeof result);
       setDevices(result);
       ToastAndroid.show(`Found ${result.length} devices`, ToastAndroid.SHORT);
     } catch (err) {
@@ -187,18 +190,34 @@ const App = () => {
     }
 
     return devices.map((device, id) => {
+      const name =
+        (device as DiscoveredPrinterBluetooth | DiscoveredPrinterBluetoothLe)
+          .friendlyName || device.address;
+
       return (
         <View
           key={`device-${id}`}
           style={{
             flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderColor: 'white',
+            borderWidth: 1,
+            padding: 8,
           }}
         >
-          <Text key={`device-${id}-text`}>{device}</Text>
+          <Text
+            key={`device-${id}-text`}
+            style={{
+              color: 'white',
+            }}
+          >
+            {name}
+          </Text>
           <Button
             key={`device-${id}-button`}
             title="Send"
-            onPress={() => sendTestTCP(device)}
+            onPress={() => sendTestTCP(device.address)}
           />
         </View>
       );
@@ -232,6 +251,7 @@ const App = () => {
       <View
         style={{
           flexDirection: 'column',
+          width: '60%',
         }}
       >
         {displayDevices()}

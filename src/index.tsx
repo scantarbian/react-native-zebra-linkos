@@ -1,4 +1,10 @@
 const ZebraLinkos = require('./NativeZebraLinkos').default;
+import type {
+  DiscoveredPrinter,
+  DiscoveredPrinterBluetooth,
+  DiscoveredPrinterBluetoothLe,
+  DiscoveredPrinterNetwork,
+} from './@types/index';
 
 export async function writeTCP(
   ipAddress: string,
@@ -7,14 +13,23 @@ export async function writeTCP(
   return await ZebraLinkos.writeTCP(ipAddress, zpl);
 }
 
-export async function scanNetwork(): Promise<string[]> {
+export async function scanNetwork(): Promise<DiscoveredPrinterNetwork[]> {
   return await ZebraLinkos.scanNetwork();
 }
 
-export async function scanBluetooth(): Promise<string[]> {
+export async function scanBluetooth(): Promise<DiscoveredPrinterBluetooth[]> {
   return await ZebraLinkos.scanBluetooth();
 }
 
-export async function scanBluetoothLE(): Promise<string[]> {
+export async function scanBluetoothLE(): Promise<
+  DiscoveredPrinterBluetoothLe[]
+> {
   return await ZebraLinkos.scanBluetoothLE();
 }
+
+export type {
+  DiscoveredPrinter,
+  DiscoveredPrinterBluetooth,
+  DiscoveredPrinterBluetoothLe,
+  DiscoveredPrinterNetwork,
+};
