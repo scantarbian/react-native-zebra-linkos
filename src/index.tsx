@@ -27,6 +27,20 @@ export async function scanBluetoothLE(): Promise<
   return await ZebraLinkos.scanBluetoothLE();
 }
 
+export async function writeBLE(
+  macAddress: string,
+  zpl: string
+): Promise<boolean> {
+  return await ZebraLinkos.writeBLE(macAddress, zpl);
+}
+
+export async function writeBTInsecure(
+  macAddress: string,
+  zpl: string
+): Promise<boolean> {
+  return await ZebraLinkos.writeBTInsecure(macAddress, zpl);
+}
+
 export type {
   DiscoveredPrinter,
   DiscoveredPrinterBluetooth,
