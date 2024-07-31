@@ -6,7 +6,6 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.module.annotations.ReactModule
-import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.zebra.sdk.btleComm.BluetoothLeDiscoverer
 import com.zebra.sdk.btleComm.DiscoveredPrinterBluetoothLe
@@ -34,15 +33,15 @@ class ZebraLinkosModule(reactContext: ReactApplicationContext) :
     val printerConnection: Connection = TcpConnection(ipAddress, TcpConnection.DEFAULT_ZPL_TCP_PORT)
 
     try {
-      Log.i(NAME, "Going to write via TCP with IP Address: $ipAddress")
+      Log.d(NAME, "Going to write via TCP with IP Address: $ipAddress")
       printerConnection.open()
 
-      Log.i(NAME, "Connection is open: ${printerConnection.isConnected}, sending data")
+      Log.d(NAME, "Connection is open: ${printerConnection.isConnected}, sending data")
       printerConnection.write(zpl.toByteArray())
 
       promise.resolve(true)
     } catch (e: ConnectionException) {
-      Log.i(NAME, "Error writing to TCP connection: ${e.localizedMessage}")
+      Log.d(NAME, "Error writing to TCP connection: ${e.localizedMessage}")
       e.localizedMessage?.let { Log.e(NAME, it) }
       e.printStackTrace()
       promise.reject("E_TCP_CONNECTION", e.localizedMessage, e)
@@ -68,7 +67,7 @@ class ZebraLinkosModule(reactContext: ReactApplicationContext) :
                 try {
                   val printerNetwork = printer as DiscoveredPrinterNetwork
                   this.printers.pushMap(convertToWritableMap(printerNetwork))
-                  Log.i(NAME, "Found printer: ${printerNetwork.address}")
+                  Log.d(NAME, "Found printer: ${printerNetwork.address}")
                 } catch (e: Exception) {
                   Log.e(NAME, "Error adding printer to list: ${e.localizedMessage}")
                   promise.reject("E_NET_SCAN", e.localizedMessage, e)
@@ -78,7 +77,7 @@ class ZebraLinkosModule(reactContext: ReactApplicationContext) :
               }
 
               override fun discoveryFinished() {
-                Log.i(NAME, "Discovery finished")
+                Log.d(NAME, "Discovery finished")
                 promise.resolve(this.printers)
               }
 
@@ -89,7 +88,7 @@ class ZebraLinkosModule(reactContext: ReactApplicationContext) :
             }
 
     try {
-      Log.i(NAME, "Going to scan network")
+      Log.d(NAME, "Going to scan network")
       NetworkDiscoverer.findPrinters(discoveryHandler)
     } catch (e: DiscoveryException) {
       Log.e(NAME, "Error scanning network: ${e.localizedMessage}")
@@ -117,7 +116,7 @@ class ZebraLinkosModule(reactContext: ReactApplicationContext) :
                 try {
                   val printerBluetooth = printer as DiscoveredPrinterBluetooth
                   this.printers.pushMap(convertToWritableMap(printerBluetooth))
-                  Log.i(NAME, "Found printer: ${printerBluetooth.friendlyName}")
+                  Log.d(NAME, "Found printer: ${printerBluetooth.friendlyName}")
                 } catch (e: Exception) {
                   Log.e(NAME, "Error adding printer to list: ${e.localizedMessage}")
                   promise.reject("E_BT_SCAN", e.localizedMessage, e)
@@ -127,7 +126,7 @@ class ZebraLinkosModule(reactContext: ReactApplicationContext) :
               }
 
               override fun discoveryFinished() {
-                Log.i(NAME, "Discovery finished")
+                Log.d(NAME, "Discovery finished")
                 promise.resolve(this.printers)
               }
 
@@ -138,7 +137,7 @@ class ZebraLinkosModule(reactContext: ReactApplicationContext) :
             }
 
     try {
-      Log.i(NAME, "Going to scan bluetooth")
+      Log.d(NAME, "Going to scan bluetooth")
       BluetoothDiscoverer.findPrinters(this.reactApplicationContext, discoveryHandler)
     } catch (e: ConnectionException) {
       Log.e(NAME, "Error scanning bluetooth: ${e.localizedMessage}")
@@ -166,7 +165,7 @@ class ZebraLinkosModule(reactContext: ReactApplicationContext) :
                 try {
                   val printerBluetoothLe = printer as DiscoveredPrinterBluetoothLe
                   this.printers.pushMap(convertToWritableMap(printerBluetoothLe))
-                  Log.i(NAME, "Found printer: ${printerBluetoothLe.friendlyName}")
+                  Log.d(NAME, "Found printer: ${printerBluetoothLe.friendlyName}")
                 } catch (e: Exception) {
                   Log.e(NAME, "Error adding printer to list: ${e.localizedMessage}")
                   promise.reject("E_BTLE_SCAN", e.localizedMessage, e)
@@ -176,7 +175,7 @@ class ZebraLinkosModule(reactContext: ReactApplicationContext) :
               }
 
               override fun discoveryFinished() {
-                Log.i(NAME, "Discovery finished")
+                Log.d(NAME, "Discovery finished")
                 promise.resolve(this.printers)
               }
 
@@ -187,7 +186,7 @@ class ZebraLinkosModule(reactContext: ReactApplicationContext) :
             }
 
     try {
-      Log.i(NAME, "Going to scan bluetooth LE")
+      Log.d(NAME, "Going to scan bluetooth LE")
       BluetoothLeDiscoverer.findPrinters(this.reactApplicationContext, discoveryHandler)
     } catch (e: ConnectionException) {
       Log.e(NAME, "Error scanning bluetooth LE: ${e.localizedMessage}")
