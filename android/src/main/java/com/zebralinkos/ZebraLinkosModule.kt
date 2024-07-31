@@ -56,6 +56,7 @@ class ZebraLinkosModule(reactContext: ReactApplicationContext) :
     fun convertToWritableMap(printer: DiscoveredPrinterNetwork): WritableMap {
       val map = Arguments.createMap()
       map.putString("address", printer.address)
+      map.putString("origin", "net")
       return map
     }
 
@@ -104,6 +105,7 @@ class ZebraLinkosModule(reactContext: ReactApplicationContext) :
       val map = Arguments.createMap()
       map.putString("address", printer.address)
       map.putString("friendlyName", printer.friendlyName)
+      map.putString("origin", "bt")
       return map
     }
 
@@ -152,6 +154,7 @@ class ZebraLinkosModule(reactContext: ReactApplicationContext) :
       val map = Arguments.createMap()
       map.putString("address", printer.address)
       map.putString("friendlyName", printer.friendlyName)
+      map.putString("origin", "ble")
       return map
     }
 

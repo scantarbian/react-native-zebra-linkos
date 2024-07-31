@@ -1,9 +1,11 @@
 /**
  * Represents a discovered Zebra printer.
  * @property {string} address - MAC address, IP Address, or local name of printer.
+ * @property {string} origin - The origin of the discovered printer. (net, bt, ble)
  */
 export interface DiscoveredPrinter {
   address: string;
+  origin: 'net' | 'bt' | 'ble';
 }
 
 export interface DiscoveredPrinterNetwork extends DiscoveredPrinter {}
