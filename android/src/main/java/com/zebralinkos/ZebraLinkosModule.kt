@@ -5,11 +5,12 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.bridge.WritableMap
+import com.facebook.react.module.annotations.ReactModule
+import com.zebra.sdk.btleComm.BluetoothLeConnection
 import com.zebra.sdk.btleComm.BluetoothLeDiscoverer
 import com.zebra.sdk.btleComm.DiscoveredPrinterBluetoothLe
-import com.zebra.sdk.comm.Connection
+import com.zebra.sdk.comm.BluetoothConnectionInsecure
 import com.zebra.sdk.comm.ConnectionException
 import com.zebra.sdk.comm.TcpConnection
 import com.zebra.sdk.printer.discovery.BluetoothDiscoverer
@@ -30,7 +31,7 @@ class ZebraLinkosModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   override fun writeTCP(ipAddress: String, zpl: String, promise: Promise) {
-    val printerConnection: Connection = TcpConnection(ipAddress, TcpConnection.DEFAULT_ZPL_TCP_PORT)
+    val printerConnection = TcpConnection(ipAddress, TcpConnection.DEFAULT_ZPL_TCP_PORT)
 
     try {
       Log.d(NAME, "Going to write via TCP with IP Address: $ipAddress")
@@ -41,10 +42,48 @@ class ZebraLinkosModule(reactContext: ReactApplicationContext) :
 
       promise.resolve(true)
     } catch (e: ConnectionException) {
-      Log.d(NAME, "Error writing to TCP connection: ${e.localizedMessage}")
+      Log.e(NAME, "Error writing to TCP connection: ${e.localizedMessage}")
       e.localizedMessage?.let { Log.e(NAME, it) }
       e.printStackTrace()
       promise.reject("E_TCP_CONNECTION", e.localizedMessage, e)
+    } finally {
+      printerConnection.close()
+    }
+  }
+
+  override fun writeBLE(macAddress: String, zpl: String, promise: Promise) {
+    val printerConnection = BluetoothLeConnection(macAddress, this.reactApplicationContext)
+
+    try {
+      printerConnection.open()
+
+      printerConnection.write(zpl.toByteArray())
+
+      Thread.sleep(500)
+    } catch (e: ConnectionException) {
+      Log.e(NAME, "Error writing to BLE connection: ${e.localizedMessage}")
+      e.localizedMessage?.let { Log.e(NAME, it) }
+      e.printStackTrace()
+      promise.reject("E_BLE_CONNECTION", e.localizedMessage, e)
+    } finally {
+      printerConnection.close()
+    }
+  }
+
+  override fun writeBTInsecure(macAddress: String, zpl: String, promise: Promise) {
+    val printerConnection = BluetoothConnectionInsecure(macAddress)
+
+    try {
+      printerConnection.open()
+
+      printerConnection.write(zpl.toByteArray())
+
+      Thread.sleep(500)
+    } catch (e: ConnectionException) {
+      Log.e(NAME, "Error writing to BT insecure connection: ${e.localizedMessage}")
+      e.localizedMessage?.let { Log.e(NAME, it) }
+      e.printStackTrace()
+      promise.reject("E_BT_INSECURE_CONNECTION", e.localizedMessage, e)
     } finally {
       printerConnection.close()
     }
@@ -168,7 +207,7 @@ class ZebraLinkosModule(reactContext: ReactApplicationContext) :
                   Log.d(NAME, "Found printer: ${printerBluetoothLe.friendlyName}")
                 } catch (e: Exception) {
                   Log.e(NAME, "Error adding printer to list: ${e.localizedMessage}")
-                  promise.reject("E_BTLE_SCAN", e.localizedMessage, e)
+                  promise.reject("E_BLE_SCAN", e.localizedMessage, e)
                   e.localizedMessage?.let { Log.e(NAME, it) }
                   e.printStackTrace()
                 }
@@ -181,7 +220,7 @@ class ZebraLinkosModule(reactContext: ReactApplicationContext) :
 
               override fun discoveryError(message: String?) {
                 Log.e(NAME, "Bluetooth discovery error: $message")
-                promise.reject("E_BTLE_SCAN", message)
+                promise.reject("E_BLE_SCAN", message)
               }
             }
 
@@ -192,7 +231,7 @@ class ZebraLinkosModule(reactContext: ReactApplicationContext) :
       Log.e(NAME, "Error scanning bluetooth LE: ${e.localizedMessage}")
       e.localizedMessage?.let { Log.e(NAME, it) }
       e.printStackTrace()
-      promise.reject("E_BTLE_SCAN", e.localizedMessage, e)
+      promise.reject("E_BLE_SCAN", e.localizedMessage, e)
     }
   }
 
