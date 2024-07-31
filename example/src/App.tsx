@@ -4,13 +4,14 @@ import {
   StyleSheet,
   View,
   Text,
-  TextInput,
   Button,
   ToastAndroid,
   PermissionsAndroid,
 } from 'react-native';
 import {
   writeTCP,
+  writeBLE,
+  writeBTInsecure,
   scanNetwork,
   scanBluetooth,
   scanBluetoothLE,
@@ -22,7 +23,6 @@ import type {
 } from 'react-native-zebra-linkos';
 
 const App = () => {
-  const [ip, setIp] = useState('');
   const [devices, setDevices] = useState<DiscoveredPrinter[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | undefined>();
@@ -78,13 +78,39 @@ const App = () => {
     }
   };
 
-  const sendTestTCP = async (targetIp = ip) => {
+  const sendTestTCP = async (targetIp: string) => {
     console.log('Sending test TCP...');
     ToastAndroid.show(`Sending test TCP to ${targetIp}`, ToastAndroid.SHORT);
 
     try {
       const response = await writeTCP(targetIp, ZPL_TEST_STRING);
       ToastAndroid.show(`TCP sent to ${targetIp}`, ToastAndroid.SHORT);
+      console.log(response);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const sendTestBLE = async (targetMac: string) => {
+    console.log('Sending test BLE...');
+    ToastAndroid.show(`Sending test BLE to ${targetMac}`, ToastAndroid.SHORT);
+
+    try {
+      const response = await writeBLE(targetMac, ZPL_TEST_STRING);
+      ToastAndroid.show(`BLE sent to ${targetMac}`, ToastAndroid.SHORT);
+      console.log(response);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const sendTestBT = async (targetMac: string) => {
+    console.log('Sending test BT...');
+    ToastAndroid.show(`Sending test BT to ${targetMac}`, ToastAndroid.SHORT);
+
+    try {
+      const response = await writeBTInsecure(targetMac, ZPL_TEST_STRING);
+      ToastAndroid.show(`BT sent to ${targetMac}`, ToastAndroid.SHORT);
       console.log(response);
     } catch (err) {
       console.error(err);
@@ -194,6 +220,10 @@ const App = () => {
         (device as DiscoveredPrinterBluetooth | DiscoveredPrinterBluetoothLe)
           .friendlyName || device.address;
 
+      const macAddress =
+        (device as DiscoveredPrinterBluetooth | DiscoveredPrinterBluetoothLe)
+          .address || '-';
+
       return (
         <View
           key={`device-${id}`}
@@ -206,18 +236,47 @@ const App = () => {
             padding: 8,
           }}
         >
-          <Text
-            key={`device-${id}-text`}
+          <View
             style={{
-              color: 'white',
+              flexDirection: 'row',
+              columnGap: 8,
             }}
           >
-            {name}
-          </Text>
+            <Text
+              key={`name-${id}-text`}
+              style={{
+                color: 'white',
+              }}
+            >
+              {name}
+            </Text>
+            <Text
+              key={`mac-${id}-text`}
+              style={{
+                color: 'white',
+              }}
+            >
+              {macAddress}
+            </Text>
+          </View>
           <Button
             key={`device-${id}-button`}
             title="Send"
-            onPress={() => sendTestTCP(device.address)}
+            onPress={() => {
+              switch (device.origin) {
+                case 'net': {
+                  return sendTestTCP(device.address);
+                }
+                case 'bt': {
+                  return sendTestBT(device.address);
+                }
+                case 'ble': {
+                  return sendTestBLE(device.address);
+                }
+                default:
+                  throw new Error('Undefined origin');
+              }
+            }}
           />
         </View>
       );
@@ -237,14 +296,6 @@ const App = () => {
           Error: {error}
         </Text>
       )}
-      <TextInput
-        placeholder="IP Address"
-        inputMode="numeric"
-        onChangeText={setIp}
-        value={ip}
-        style={styles.input}
-      />
-      <Button title="Test TCP" onPress={() => sendTestTCP()} />
       <Button title="Scan Network" onPress={scanTCP} />
       <Button title="Scan Bluetooth" onPress={scanBT} />
       <Button title="Scan Bluetooth LE" onPress={scanBTLE} />
