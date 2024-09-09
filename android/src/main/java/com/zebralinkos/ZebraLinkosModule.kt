@@ -51,6 +51,7 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
     }
   }
 
+  @ReactMethod
   override fun writeBLE(macAddress: String, zpl: String, promise: Promise) {
     val printerConnection = BluetoothLeConnection(macAddress, this.reactApplicationContext)
 
@@ -70,6 +71,7 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
     }
   }
 
+  @ReactMethod
   override fun writeBTInsecure(macAddress: String, zpl: String, promise: Promise) {
     val printerConnection = BluetoothConnectionInsecure(macAddress)
 
