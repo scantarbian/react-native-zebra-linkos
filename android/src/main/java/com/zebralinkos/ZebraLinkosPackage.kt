@@ -19,15 +19,17 @@ class ZebraLinkosPackage : TurboReactPackage() {
   override fun getReactModuleInfoProvider(): ReactModuleInfoProvider {
     return ReactModuleInfoProvider {
       val moduleInfos: MutableMap<String, ReactModuleInfo> = HashMap()
-      moduleInfos[ZebraLinkosModule.NAME] = ReactModuleInfo(
-        ZebraLinkosModule.NAME,
-        ZebraLinkosModule.NAME,
-        false,  // canOverrideExistingModule
-        false,  // needsEagerInit
-        true,  // hasConstants
-        false,  // isCxxModule
-        true // isTurboModule
-      )
+      val isTurboModule: Boolean = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
+      moduleInfos[ZebraLinkosModule.NAME] =
+              ReactModuleInfo(
+                      ZebraLinkosModule.NAME,
+                      ZebraLinkosModule.NAME,
+                      false, // canOverrideExistingModule
+                      false, // needsEagerInit
+                      true, // hasConstants
+                      false, // isCxxModule
+                      isTurboModule // isTurboModule
+              )
       moduleInfos
     }
   }

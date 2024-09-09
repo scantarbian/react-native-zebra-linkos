@@ -22,8 +22,8 @@ import com.zebra.sdk.printer.discovery.DiscoveryHandler
 import com.zebra.sdk.printer.discovery.NetworkDiscoverer
 
 @ReactModule(name = ZebraLinkosModule.NAME)
-class ZebraLinkosModule(reactContext: ReactApplicationContext) :
-        NativeZebraLinkosSpec(reactContext) {
+class ZebraLinkosModule internal constructor(reactContext: ReactApplicationContext) :
+        ZebraLinkosSpec(reactContext) {
 
   override fun getName(): String {
     return NAME
