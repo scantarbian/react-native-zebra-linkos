@@ -3,6 +3,7 @@ import type {
   DiscoveredPrinterBluetooth,
   DiscoveredPrinterBluetoothLe,
   DiscoveredPrinterNetwork,
+  DiscoveredPrinterUSB,
 } from './@types/index';
 import { NativeModules, Platform } from 'react-native';
 
@@ -51,6 +52,10 @@ export async function scanBluetoothLE(): Promise<
   return await ZebraLinkos.scanBluetoothLE();
 }
 
+export async function scanUSB(): Promise<DiscoveredPrinterUSB[]> {
+  return await ZebraLinkos.scanUSB();
+}
+
 export async function writeBLE(
   macAddress: string,
   zpl: string
@@ -63,6 +68,13 @@ export async function writeBTInsecure(
   zpl: string
 ): Promise<boolean> {
   return await ZebraLinkos.writeBTInsecure(macAddress, zpl);
+}
+
+export async function writeUSB(
+  deviceId: string,
+  zpl: string
+): Promise<boolean> {
+  return await ZebraLinkos.writeUSB(deviceId, zpl);
 }
 
 export type {

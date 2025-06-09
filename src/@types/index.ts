@@ -5,10 +5,12 @@
  */
 export interface DiscoveredPrinter {
   address: string;
-  origin: 'net' | 'bt' | 'ble';
+  origin: 'net' | 'bt' | 'ble' | 'usb';
 }
 
-export interface DiscoveredPrinterNetwork extends DiscoveredPrinter {}
+export interface DiscoveredPrinterNetwork extends DiscoveredPrinter {
+  origin: 'net';
+}
 
 /**
  * Represents a Bluetooth Low Energy (BLE) discovered Zebra printer.
@@ -17,6 +19,7 @@ export interface DiscoveredPrinterNetwork extends DiscoveredPrinter {}
  */
 export interface DiscoveredPrinterBluetoothLe extends DiscoveredPrinter {
   friendlyName: string;
+  origin: 'ble';
 }
 
 /**
@@ -26,4 +29,9 @@ export interface DiscoveredPrinterBluetoothLe extends DiscoveredPrinter {
  */
 export interface DiscoveredPrinterBluetooth extends DiscoveredPrinter {
   friendlyName: string;
+  origin: 'bt';
+}
+
+export interface DiscoveredPrinterUSB extends DiscoveredPrinter {
+  origin: 'usb';
 }
