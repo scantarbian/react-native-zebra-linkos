@@ -5,7 +5,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 
 abstract class ZebraLinkosSpec internal constructor(context: ReactApplicationContext) :
-        ReactContextBaseJavaModule(context) {
+    ReactContextBaseJavaModule(context) {
 
   abstract fun writeTCP(ipAddress: String, zpl: String, promise: Promise)
 

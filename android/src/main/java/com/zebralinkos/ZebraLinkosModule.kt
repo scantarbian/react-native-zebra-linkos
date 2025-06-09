@@ -23,7 +23,7 @@ import com.zebra.sdk.printer.discovery.NetworkDiscoverer
 
 @ReactModule(name = ZebraLinkosModule.NAME)
 class ZebraLinkosModule internal constructor(reactContext: ReactApplicationContext) :
-        ZebraLinkosSpec(reactContext) {
+    ZebraLinkosSpec(reactContext) {
 
   override fun getName(): String {
     return NAME
@@ -101,32 +101,32 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
     }
 
     val discoveryHandler =
-            object : DiscoveryHandler {
-              val printers = Arguments.createArray()
+        object : DiscoveryHandler {
+          val printers = Arguments.createArray()
 
-              override fun foundPrinter(printer: DiscoveredPrinter) {
-                try {
-                  val printerNetwork = printer as DiscoveredPrinterNetwork
-                  this.printers.pushMap(convertToWritableMap(printerNetwork))
-                  Log.d(NAME, "Found printer: ${printerNetwork.address}")
-                } catch (e: Exception) {
-                  Log.e(NAME, "Error adding printer to list: ${e.localizedMessage}")
-                  promise.reject("E_NET_SCAN", e.localizedMessage, e)
-                  e.localizedMessage?.let { Log.e(NAME, it) }
-                  e.printStackTrace()
-                }
-              }
-
-              override fun discoveryFinished() {
-                Log.d(NAME, "Discovery finished")
-                promise.resolve(this.printers)
-              }
-
-              override fun discoveryError(message: String?) {
-                Log.e(NAME, "Network discovery error: $message")
-                promise.reject("E_NET_SCAN", message)
-              }
+          override fun foundPrinter(printer: DiscoveredPrinter) {
+            try {
+              val printerNetwork = printer as DiscoveredPrinterNetwork
+              this.printers.pushMap(convertToWritableMap(printerNetwork))
+              Log.d(NAME, "Found printer: ${printerNetwork.address}")
+            } catch (e: Exception) {
+              Log.e(NAME, "Error adding printer to list: ${e.localizedMessage}")
+              promise.reject("E_NET_SCAN", e.localizedMessage, e)
+              e.localizedMessage?.let { Log.e(NAME, it) }
+              e.printStackTrace()
             }
+          }
+
+          override fun discoveryFinished() {
+            Log.d(NAME, "Discovery finished")
+            promise.resolve(this.printers)
+          }
+
+          override fun discoveryError(message: String?) {
+            Log.e(NAME, "Network discovery error: $message")
+            promise.reject("E_NET_SCAN", message)
+          }
+        }
 
     try {
       Log.d(NAME, "Going to scan network")
@@ -150,32 +150,32 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
     }
 
     val discoveryHandler =
-            object : DiscoveryHandler {
-              val printers = Arguments.createArray()
+        object : DiscoveryHandler {
+          val printers = Arguments.createArray()
 
-              override fun foundPrinter(printer: DiscoveredPrinter) {
-                try {
-                  val printerBluetooth = printer as DiscoveredPrinterBluetooth
-                  this.printers.pushMap(convertToWritableMap(printerBluetooth))
-                  Log.d(NAME, "Found printer: ${printerBluetooth.friendlyName}")
-                } catch (e: Exception) {
-                  Log.e(NAME, "Error adding printer to list: ${e.localizedMessage}")
-                  promise.reject("E_BT_SCAN", e.localizedMessage, e)
-                  e.localizedMessage?.let { Log.e(NAME, it) }
-                  e.printStackTrace()
-                }
-              }
-
-              override fun discoveryFinished() {
-                Log.d(NAME, "Discovery finished")
-                promise.resolve(this.printers)
-              }
-
-              override fun discoveryError(message: String?) {
-                Log.e(NAME, "Bluetooth discovery error: $message")
-                promise.reject("E_BT_SCAN", message)
-              }
+          override fun foundPrinter(printer: DiscoveredPrinter) {
+            try {
+              val printerBluetooth = printer as DiscoveredPrinterBluetooth
+              this.printers.pushMap(convertToWritableMap(printerBluetooth))
+              Log.d(NAME, "Found printer: ${printerBluetooth.friendlyName}")
+            } catch (e: Exception) {
+              Log.e(NAME, "Error adding printer to list: ${e.localizedMessage}")
+              promise.reject("E_BT_SCAN", e.localizedMessage, e)
+              e.localizedMessage?.let { Log.e(NAME, it) }
+              e.printStackTrace()
             }
+          }
+
+          override fun discoveryFinished() {
+            Log.d(NAME, "Discovery finished")
+            promise.resolve(this.printers)
+          }
+
+          override fun discoveryError(message: String?) {
+            Log.e(NAME, "Bluetooth discovery error: $message")
+            promise.reject("E_BT_SCAN", message)
+          }
+        }
 
     try {
       Log.d(NAME, "Going to scan bluetooth")
@@ -199,32 +199,32 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
     }
 
     val discoveryHandler =
-            object : DiscoveryHandler {
-              val printers = Arguments.createArray()
+        object : DiscoveryHandler {
+          val printers = Arguments.createArray()
 
-              override fun foundPrinter(printer: DiscoveredPrinter) {
-                try {
-                  val printerBluetoothLe = printer as DiscoveredPrinterBluetoothLe
-                  this.printers.pushMap(convertToWritableMap(printerBluetoothLe))
-                  Log.d(NAME, "Found printer: ${printerBluetoothLe.friendlyName}")
-                } catch (e: Exception) {
-                  Log.e(NAME, "Error adding printer to list: ${e.localizedMessage}")
-                  promise.reject("E_BLE_SCAN", e.localizedMessage, e)
-                  e.localizedMessage?.let { Log.e(NAME, it) }
-                  e.printStackTrace()
-                }
-              }
-
-              override fun discoveryFinished() {
-                Log.d(NAME, "Discovery finished")
-                promise.resolve(this.printers)
-              }
-
-              override fun discoveryError(message: String?) {
-                Log.e(NAME, "Bluetooth discovery error: $message")
-                promise.reject("E_BLE_SCAN", message)
-              }
+          override fun foundPrinter(printer: DiscoveredPrinter) {
+            try {
+              val printerBluetoothLe = printer as DiscoveredPrinterBluetoothLe
+              this.printers.pushMap(convertToWritableMap(printerBluetoothLe))
+              Log.d(NAME, "Found printer: ${printerBluetoothLe.friendlyName}")
+            } catch (e: Exception) {
+              Log.e(NAME, "Error adding printer to list: ${e.localizedMessage}")
+              promise.reject("E_BLE_SCAN", e.localizedMessage, e)
+              e.localizedMessage?.let { Log.e(NAME, it) }
+              e.printStackTrace()
             }
+          }
+
+          override fun discoveryFinished() {
+            Log.d(NAME, "Discovery finished")
+            promise.resolve(this.printers)
+          }
+
+          override fun discoveryError(message: String?) {
+            Log.e(NAME, "Bluetooth discovery error: $message")
+            promise.reject("E_BLE_SCAN", message)
+          }
+        }
 
     try {
       Log.d(NAME, "Going to scan bluetooth LE")
