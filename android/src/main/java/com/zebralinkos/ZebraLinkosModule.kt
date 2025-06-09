@@ -66,6 +66,7 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
       printerConnection.write(zpl.toByteArray())
 
       Thread.sleep(500)
+      promise.resolve(true)
     } catch (e: ConnectionException) {
       Log.e(NAME, "Error writing to BLE connection: ${e.localizedMessage}")
       e.localizedMessage?.let { Log.e(NAME, it) }
@@ -86,6 +87,7 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
       printerConnection.write(zpl.toByteArray())
 
       Thread.sleep(500)
+      promise.resolve(true)
     } catch (e: ConnectionException) {
       Log.e(NAME, "Error writing to BT insecure connection: ${e.localizedMessage}")
       e.localizedMessage?.let { Log.e(NAME, it) }
@@ -120,9 +122,9 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
 
       conn.open()
       conn.write(zpl.toByteArray())
+      Thread.sleep(500)
 
-
-      TODO("Implement USB writing logic")
+      promise.resolve(true)
     } catch (e: ConnectionException) {
       Log.e(NAME, "Error writing to USB connection: ${e.localizedMessage}")
       e.localizedMessage?.let { Log.e(NAME, it) }
