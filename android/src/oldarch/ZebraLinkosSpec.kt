@@ -13,6 +13,8 @@ abstract class ZebraLinkosSpec internal constructor(context: ReactApplicationCon
 
   abstract fun writeBTInsecure(macAddress: String, zpl: String, promise: Promise)
 
+  abstract fun writeUSB(deviceId: String, zpl: String, promise: Promise)
+
   abstract fun scanNetwork(promise: Promise)
 
   abstract fun scanBluetooth(promise: Promise)
