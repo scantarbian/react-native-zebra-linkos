@@ -18,4 +18,6 @@ abstract class ZebraLinkosSpec internal constructor(context: ReactApplicationCon
   abstract fun scanBluetooth(promise: Promise)
 
   abstract fun scanBluetoothLE(promise: Promise)
+
+  abstract fun scanUSB(promise: Promise)
 }

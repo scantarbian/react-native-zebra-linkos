@@ -20,6 +20,8 @@ import com.zebra.sdk.printer.discovery.DiscoveredPrinterNetwork
 import com.zebra.sdk.printer.discovery.DiscoveryException
 import com.zebra.sdk.printer.discovery.DiscoveryHandler
 import com.zebra.sdk.printer.discovery.NetworkDiscoverer
+import com.zebra.sdk.printer.discovery.UsbDiscoverer
+import com.zebra.sdk.printer.discovery.DiscoveredPrinterUsb
 
 @ReactModule(name = ZebraLinkosModule.NAME)
 class ZebraLinkosModule internal constructor(reactContext: ReactApplicationContext) :
@@ -234,6 +236,38 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
       e.localizedMessage?.let { Log.e(NAME, it) }
       e.printStackTrace()
       promise.reject("E_BLE_SCAN", e.localizedMessage, e)
+    }
+  }
+
+  @ReactMethod
+  override fun scanUSB(promise: Promise) {
+
+    val discoveryHandler = object: DiscoveryHandler {
+      val printers = Arguments.createArray()
+
+      override fun foundPrinter(p0: DiscoveredPrinter?) {
+        TODO("Not yet implemented")
+      }
+
+      override fun discoveryFinished() {
+        Log.d(NAME, "USB discovery finished")
+        promise.resolve(this.printers)
+      }
+
+      override fun discoveryError(p0: String?) {
+        TODO("Not yet implemented")
+      }
+
+    }
+
+    try {
+      Log.d(NAME, "Going to scan USB")
+      UsbDiscoverer.findPrinters(this.reactApplicationContext, discoveryHandler)
+    } catch (e: ConnectionException) {
+      Log.e(NAME, "Error scanning USB: ${e.localizedMessage}")
+      e.localizedMessage?.let { Log.e(NAME, it) }
+      e.printStackTrace()
+      promise.reject("E_USB_SCAN", e.localizedMessage, e)
     }
   }
 
