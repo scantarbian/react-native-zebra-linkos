@@ -77,6 +77,10 @@ export async function writeUSB(
   return await ZebraLinkos.writeUSB(deviceId, zpl);
 }
 
+export async function checkUSBPermission(deviceId: string): Promise<boolean> {
+  return await ZebraLinkos.checkUSBPermission(deviceId);
+}
+
 export type {
   DiscoveredPrinter,
   DiscoveredPrinterBluetooth,
