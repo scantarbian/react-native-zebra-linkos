@@ -12,9 +12,11 @@ import {
   writeTCP,
   writeBLE,
   writeBTInsecure,
+  writeUSB,
   scanNetwork,
   scanBluetooth,
   scanBluetoothLE,
+  scanUSB,
 } from 'react-native-zebra-linkos';
 import type {
   DiscoveredPrinter,
@@ -117,6 +119,18 @@ const App = () => {
     }
   };
 
+  const sendTestUSB = async (targetId: string) => {
+    console.log('Sending test USB...');
+    ToastAndroid.show(`Sending test USB to ${targetId}`, ToastAndroid.SHORT);
+    try {
+      const response = await writeUSB(targetId, ZPL_TEST_STRING);
+      ToastAndroid.show(`USB sent to ${targetId}`, ToastAndroid.SHORT);
+      console.log(response);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const scanTCP = async () => {
     setError(undefined);
     console.log('Scanning network...');
@@ -176,6 +190,22 @@ const App = () => {
       }
 
       const result = await scanBluetoothLE();
+      console.log('scanResult', result);
+      setDevices(result);
+      ToastAndroid.show(`Found ${result.length} devices`, ToastAndroid.SHORT);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const scanSerial = async () => {
+    console.log('Scanning USB...');
+    ToastAndroid.show(`Starting USB scan`, ToastAndroid.SHORT);
+    setIsScanning(true);
+    try {
+      const result = await scanUSB();
       console.log('scanResult', result);
       setDevices(result);
       ToastAndroid.show(`Found ${result.length} devices`, ToastAndroid.SHORT);
@@ -273,6 +303,9 @@ const App = () => {
                 case 'ble': {
                   return sendTestBLE(device.address);
                 }
+                case 'usb': {
+                  return sendTestUSB(device.address);
+                }
                 default:
                   throw new Error('Undefined origin');
               }
@@ -299,6 +332,7 @@ const App = () => {
       <Button title="Scan Network" onPress={scanTCP} />
       <Button title="Scan Bluetooth" onPress={scanBT} />
       <Button title="Scan Bluetooth LE" onPress={scanBTLE} />
+      <Button title="Scan USB" onPress={scanSerial} />
       <View
         style={{
           flexDirection: 'column',

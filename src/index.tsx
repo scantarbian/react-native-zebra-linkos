@@ -82,4 +82,5 @@ export type {
   DiscoveredPrinterBluetooth,
   DiscoveredPrinterBluetoothLe,
   DiscoveredPrinterNetwork,
+  DiscoveredPrinterUSB,
 };
