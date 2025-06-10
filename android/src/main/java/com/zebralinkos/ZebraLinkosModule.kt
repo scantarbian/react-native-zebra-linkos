@@ -1,8 +1,14 @@
 package com.zebralinkos
 
+import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.util.Log
+import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -29,6 +35,37 @@ import com.zebra.sdk.printer.discovery.UsbDiscoverer
 @ReactModule(name = ZebraLinkosModule.NAME)
 class ZebraLinkosModule internal constructor(reactContext: ReactApplicationContext) :
     ZebraLinkosSpec(reactContext) {
+
+  private val usbManager =
+      this.reactApplicationContext.getSystemService(Context.USB_SERVICE) as UsbManager
+  private val ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION"
+  //  Handles USB permission requests
+  private var usbReceiverRegistered = false
+  private var pendingDevice: UsbDevice? = null
+  private var pendingZpl: String? = null
+  private var pendingPromise: Promise? = null
+
+  private val usbReceiver = object : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+      if (intent.action == ACTION_USB_PERMISSION) {
+        val device: UsbDevice? =
+          intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
+
+        if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+          device?.let {
+            writeToUsbNow(it)
+          } ?: pendingPromise?.reject("E_USB_DEVICE_NULL", "USB device is null after permission")
+        } else {
+          pendingPromise?.reject("E_USB_PERMISSION_DENIED", "USB permission denied by user")
+        }
+
+        try {
+          context.unregisterReceiver(this)
+        } catch (_: Exception) {}
+        usbReceiverRegistered = false
+      }
+    }
+  }
 
   override fun getName(): String {
     return NAME
@@ -100,47 +137,77 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
 
   @ReactMethod
   override fun writeUSB(deviceId: String, zpl: String, promise: Promise) {
+    val deviceList = usbManager.deviceList
+
+    if (!deviceList.containsKey(deviceId)) {
+      Log.e(NAME, "USB device with ID $deviceId not found")
+      promise.reject("E_USB_DEVICE_NOT_FOUND", "USB device with ID $deviceId not found")
+      return
+    }
+
+    val device =
+        deviceList[deviceId]
+            ?: run {
+              Log.e(NAME, "USB device with ID $deviceId is null")
+              promise.reject("E_USB_DEVICE_NULL", "USB device with ID $deviceId is null")
+              return
+            }
+
+    //      Request permission for the USB device
+    if (usbManager.hasPermission(device)) {
+      writeToUsbNow(device, zpl, promise)
+    } else {
+      pendingDevice = device
+      pendingZpl = zpl
+      pendingPromise = promise
+
+      if (!usbReceiverRegistered) {
+        val filter = IntentFilter(ACTION_USB_PERMISSION)
+        ContextCompat.registerReceiver(
+          reactApplicationContext,
+          usbReceiver,
+          filter,
+          ContextCompat.RECEIVER_NOT_EXPORTED
+        )
+        usbReceiverRegistered = true
+      }
+
+      val permissionIntent = PendingIntent.getBroadcast(
+        reactApplicationContext,
+        0,
+        Intent(ACTION_USB_PERMISSION),
+        PendingIntent.FLAG_IMMUTABLE
+      )
+
+      usbManager.requestPermission(device, permissionIntent)
+    }
+  }
+
+  private fun writeToUsbNow(
+      device: UsbDevice,
+      zpl: String? = pendingZpl,
+      promise: Promise? = pendingPromise
+  ) {
     var conn: UsbConnection? = null
-
     try {
-      val usbManager = this.reactApplicationContext.getSystemService(Context.USB_SERVICE) as UsbManager
-      val deviceList = usbManager.deviceList
-
-      if (!deviceList.containsKey(deviceId)) {
-        Log.e(NAME, "USB device with ID $deviceId not found")
-        promise.reject("E_USB_DEVICE_NOT_FOUND", "USB device with ID $deviceId not found")
-        return
-      }
-
-      val device = deviceList[deviceId] ?: run {
-        Log.e(NAME, "USB device with ID $deviceId is null")
-        promise.reject("E_USB_DEVICE_NULL", "USB device with ID $deviceId is null")
-        return
-      }
-
       conn = UsbConnection(usbManager, device)
-
       conn.open()
-      conn.write(zpl.toByteArray())
+      conn.write(zpl!!.toByteArray())
       Thread.sleep(500)
-
-      promise.resolve(true)
+      promise?.resolve(true)
     } catch (e: ConnectionException) {
       Log.e(NAME, "Error writing to USB connection: ${e.localizedMessage}")
-      e.localizedMessage?.let { Log.e(NAME, it) }
-      e.printStackTrace()
-      promise.reject("E_USB_CONNECTION", e.localizedMessage, e)
-    } finally{
-      if (conn !== null) {
-        try {
-          conn.close()
-        } catch (e: ConnectionException) {
-          Log.e(NAME, "Error closing USB connection: ${e.localizedMessage}")
-          e.localizedMessage?.let { Log.e(NAME, it) }
-          e.printStackTrace()
-        }
+      promise?.reject("E_USB_CONNECTION", e.localizedMessage, e)
+    } finally {
+      try {
+        conn?.close()
+      } catch (e: ConnectionException) {
+        Log.e(NAME, "Error closing USB connection: ${e.localizedMessage}")
       }
-
+      // Clean up pending
+      pendingDevice = null
+      pendingZpl = null
+      pendingPromise = null
     }
   }
 
