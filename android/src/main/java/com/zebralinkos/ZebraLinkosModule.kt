@@ -44,6 +44,7 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
   private var pendingDevice: UsbDevice? = null
   private var pendingZpl: String? = null
   private var pendingPromise: Promise? = null
+  private var pendingPermissionPromise: Promise? = null
 
   private val usbReceiver =
       object : BroadcastReceiver() {
@@ -57,12 +58,21 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
                 "USB permission received for device: ${device?.productName}, granted: $granted")
 
             if (granted) {
-              device?.let { writeToUsbNow(it) }
-                  ?: pendingPromise?.reject(
-                      "E_USB_DEVICE_NULL", "USB device is null after permission")
+              if (pendingPermissionPromise != null) {
+                pendingPermissionPromise?.resolve(true)
+              } else if (device != null) {
+                writeToUsbNow(device)
+              }
             } else {
+              pendingPermissionPromise?.reject(
+                  "E_USB_PERMISSION_DENIED", "USB permission denied by user")
               pendingPromise?.reject("E_USB_PERMISSION_DENIED", "USB permission denied by user")
             }
+
+            // Clean up
+            pendingDevice = null
+            pendingPromise = null
+            pendingPermissionPromise = null
 
             try {
               context.unregisterReceiver(this)
@@ -236,13 +246,23 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
     }
 
     if (usbManager.hasPermission(device)) {
-      Log.d(NAME, "USB permission granted for device: $deviceId")
+      Log.d(NAME, "USB permission already granted for device: $deviceId")
       promise.resolve(true)
     } else {
-      //      Request permission for the USB device
+      Log.d(NAME, "USB permission not yet granted for device: $deviceId")
+      pendingDevice = device
+      pendingPermissionPromise = promise
+
+      if (!usbReceiverRegistered) {
+        val filter = IntentFilter(ACTION_USB_PERMISSION)
+        ContextCompat.registerReceiver(
+            reactApplicationContext, usbReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+        usbReceiverRegistered = true
+      }
+
       val explicitIntent =
           Intent(ACTION_USB_PERMISSION).apply {
-            setPackage(reactApplicationContext.packageName) // Makes intent explicit ✅
+            setPackage(reactApplicationContext.packageName)
             putExtra(UsbManager.EXTRA_DEVICE, device)
           }
 
@@ -251,10 +271,6 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
               reactApplicationContext, 0, explicitIntent, PendingIntent.FLAG_MUTABLE)
 
       usbManager.requestPermission(device, permissionIntent)
-
-      pendingDevice = device
-      Log.d(NAME, "USB permission not granted for device: $deviceId")
-      promise.resolve(false)
     }
   }
 
