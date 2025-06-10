@@ -31,54 +31,43 @@ const ZebraLinkos = ZebraLinkosModule
       }
     );
 
-export async function writeTCP(
-  ipAddress: string,
-  zpl: string
-): Promise<boolean> {
-  return await ZebraLinkos.writeTCP(ipAddress, zpl);
+export function writeTCP(ipAddress: string, zpl: string): Promise<boolean> {
+  return ZebraLinkos.writeTCP(ipAddress, zpl);
 }
 
-export async function scanNetwork(): Promise<DiscoveredPrinterNetwork[]> {
-  return await ZebraLinkos.scanNetwork();
+export function scanNetwork(): Promise<DiscoveredPrinterNetwork[]> {
+  return ZebraLinkos.scanNetwork();
 }
 
-export async function scanBluetooth(): Promise<DiscoveredPrinterBluetooth[]> {
-  return await ZebraLinkos.scanBluetooth();
+export function scanBluetooth(): Promise<DiscoveredPrinterBluetooth[]> {
+  return ZebraLinkos.scanBluetooth();
 }
 
-export async function scanBluetoothLE(): Promise<
-  DiscoveredPrinterBluetoothLe[]
-> {
-  return await ZebraLinkos.scanBluetoothLE();
+export function scanBluetoothLE(): Promise<DiscoveredPrinterBluetoothLe[]> {
+  return ZebraLinkos.scanBluetoothLE();
 }
 
-export async function scanUSB(): Promise<DiscoveredPrinterUSB[]> {
-  return await ZebraLinkos.scanUSB();
+export function scanUSB(): Promise<DiscoveredPrinterUSB[]> {
+  return ZebraLinkos.scanUSB();
 }
 
-export async function writeBLE(
+export function writeBLE(macAddress: string, zpl: string): Promise<boolean> {
+  return ZebraLinkos.writeBLE(macAddress, zpl);
+}
+
+export function writeBTInsecure(
   macAddress: string,
   zpl: string
 ): Promise<boolean> {
-  return await ZebraLinkos.writeBLE(macAddress, zpl);
+  return ZebraLinkos.writeBTInsecure(macAddress, zpl);
 }
 
-export async function writeBTInsecure(
-  macAddress: string,
-  zpl: string
-): Promise<boolean> {
-  return await ZebraLinkos.writeBTInsecure(macAddress, zpl);
+export function writeUSB(deviceId: string, zpl: string): Promise<boolean> {
+  return ZebraLinkos.writeUSB(deviceId, zpl);
 }
 
-export async function writeUSB(
-  deviceId: string,
-  zpl: string
-): Promise<boolean> {
-  return await ZebraLinkos.writeUSB(deviceId, zpl);
-}
-
-export async function checkUSBPermission(deviceId: string): Promise<boolean> {
-  return await ZebraLinkos.checkUSBPermission(deviceId);
+export function checkUSBPermission(deviceId: string): Promise<boolean> {
+  return ZebraLinkos.checkUSBPermission(deviceId);
 }
 
 export type {
