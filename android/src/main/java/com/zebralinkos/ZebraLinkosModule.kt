@@ -52,7 +52,9 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
             val device: UsbDevice? = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
             val granted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
 
-            Log.d("USB", "Permission result: granted=$granted, device=$device")
+            Log.d(
+                NAME,
+                "USB permission received for device: ${device?.productName}, granted: $granted")
 
             if (granted) {
               device?.let { writeToUsbNow(it) }
@@ -163,12 +165,15 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
         usbReceiverRegistered = true
       }
 
-      val intentWithDevice =
-          Intent(ACTION_USB_PERMISSION).apply { putExtra(UsbManager.EXTRA_DEVICE, device) }
+      val explicitIntent =
+          Intent(ACTION_USB_PERMISSION).apply {
+            setPackage(reactApplicationContext.packageName) // Makes intent explicit ✅
+            putExtra(UsbManager.EXTRA_DEVICE, device)
+          }
 
       val permissionIntent =
           PendingIntent.getBroadcast(
-              reactApplicationContext, 0, intentWithDevice, PendingIntent.FLAG_IMMUTABLE)
+              reactApplicationContext, 0, explicitIntent, PendingIntent.FLAG_MUTABLE)
 
       usbManager.requestPermission(device, permissionIntent)
     }
@@ -235,12 +240,15 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
       promise.resolve(true)
     } else {
       //      Request permission for the USB device
-      val intentWithDevice =
-          Intent(ACTION_USB_PERMISSION).apply { putExtra(UsbManager.EXTRA_DEVICE, device) }
+      val explicitIntent =
+          Intent(ACTION_USB_PERMISSION).apply {
+            setPackage(reactApplicationContext.packageName) // Makes intent explicit ✅
+            putExtra(UsbManager.EXTRA_DEVICE, device)
+          }
 
       val permissionIntent =
           PendingIntent.getBroadcast(
-              reactApplicationContext, 0, intentWithDevice, PendingIntent.FLAG_IMMUTABLE)
+              reactApplicationContext, 0, explicitIntent, PendingIntent.FLAG_MUTABLE)
 
       usbManager.requestPermission(device, permissionIntent)
 
@@ -400,6 +408,8 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
   override fun scanUSB(promise: Promise) {
     fun convertToWritableMap(printer: DiscoveredPrinterUsb): WritableMap {
       val map = Arguments.createMap()
+      map.putString("friendlyName", printer.device.productName)
+      map.putString("manufacturer", printer.device.manufacturerName)
       map.putString("address", printer.address)
       map.putString("origin", "usb")
       return map

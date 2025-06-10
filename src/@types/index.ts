@@ -33,5 +33,7 @@ export interface DiscoveredPrinterBluetooth extends DiscoveredPrinter {
 }
 
 export interface DiscoveredPrinterUSB extends DiscoveredPrinter {
+  friendlyName: string;
+  manufacturer: string;
   origin: 'usb';
 }

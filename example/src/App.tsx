@@ -17,6 +17,7 @@ import {
   scanBluetooth,
   scanBluetoothLE,
   scanUSB,
+  checkUSBPermission,
 } from 'react-native-zebra-linkos';
 import type {
   DiscoveredPrinter,
@@ -290,6 +291,31 @@ const App = () => {
             </Text>
           </View>
           <Button
+            key={`device-${id}-perms`}
+            title="Check Permissions"
+            onPress={() => {
+              switch (device.origin) {
+                case 'usb': {
+                  return checkUSBPermission(device.address).then((result) => {
+                    if (result) {
+                      ToastAndroid.show(
+                        `USB Permission granted for ${device.address}`,
+                        ToastAndroid.SHORT
+                      );
+                    } else {
+                      ToastAndroid.show(
+                        `USB Permission denied for ${device.address}`,
+                        ToastAndroid.SHORT
+                      );
+                    }
+                  });
+                }
+                default:
+                  return;
+              }
+            }}
+          />
+          <Button
             key={`device-${id}-button`}
             title="Send"
             onPress={() => {
@@ -307,7 +333,7 @@ const App = () => {
                   return sendTestUSB(device.address);
                 }
                 default:
-                  throw new Error('Undefined origin');
+                  return;
               }
             }}
           />
