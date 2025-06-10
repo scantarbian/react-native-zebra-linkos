@@ -5,7 +5,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 
 abstract class ZebraLinkosSpec internal constructor(context: ReactApplicationContext) :
-        ReactContextBaseJavaModule(context) {
+    ReactContextBaseJavaModule(context) {
 
   abstract fun writeTCP(ipAddress: String, zpl: String, promise: Promise)
 
@@ -13,9 +13,15 @@ abstract class ZebraLinkosSpec internal constructor(context: ReactApplicationCon
 
   abstract fun writeBTInsecure(macAddress: String, zpl: String, promise: Promise)
 
+  abstract fun writeUSB(deviceId: String, zpl: String, promise: Promise)
+
   abstract fun scanNetwork(promise: Promise)
 
   abstract fun scanBluetooth(promise: Promise)
 
   abstract fun scanBluetoothLE(promise: Promise)
+
+  abstract fun scanUSB(promise: Promise)
+
+  abstract fun checkUSBPermission(deviceId: String, promise: Promise)
 }
