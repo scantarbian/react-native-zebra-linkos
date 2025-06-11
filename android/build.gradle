@@ -122,9 +122,9 @@ dependencies {
   implementation "com.facebook.react:react-native:+"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation fileTree(dir: "libs", include: ["*.jar"])
-  implementation 'com.fasterxml.jackson.core:jackson-core:2.18.1'
-  implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.1'
-  implementation 'com.fasterxml.jackson.core:jackson-annotations:2.18.1'
+  implementation 'com.fasterxml.jackson.core:jackson-core:2.12.7'
+  implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.7'
+  implementation 'com.fasterxml.jackson.core:jackson-annotations:2.12.7'
 }
 
 if (isNewArchitectureEnabled()) {
