@@ -11,6 +11,7 @@ export interface Spec extends TurboModule {
   writeBLE(macAddress: string, zpl: string): Promise<boolean>;
   writeBTInsecure(macAddress: string, zpl: string): Promise<boolean>;
   writeUSB(deviceId: string, zpl: string): Promise<boolean>;
+  checkUSBPermission(deviceId: string): Promise<boolean>;
   scanNetwork(): Promise<DiscoveredPrinterNetwork[]>;
   scanBluetooth(): Promise<DiscoveredPrinterBluetooth[]>;
   scanBluetoothLE(): Promise<DiscoveredPrinterBluetoothLe[]>;
