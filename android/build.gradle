@@ -48,6 +48,10 @@ def supportsNamespace() {
 }
 
 android {
+  packagingOptions {
+
+  }
+
   if (supportsNamespace()) {
     namespace "com.zebralinkos"
 
@@ -56,6 +60,8 @@ android {
         manifest.srcFile "src/main/AndroidManifestNew.xml"
       }
     }
+
+
   }
 
   compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")

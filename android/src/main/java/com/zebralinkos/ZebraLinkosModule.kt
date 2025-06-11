@@ -289,6 +289,7 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
 
           override fun foundPrinter(printer: DiscoveredPrinter) {
             try {
+              Log.d(NAME, "Found printer: ${printer}")
               val printerNetwork = printer as DiscoveredPrinterNetwork
               this.printers.pushMap(convertToWritableMap(printerNetwork))
               Log.d(NAME, "Found printer: ${printerNetwork.address}")
