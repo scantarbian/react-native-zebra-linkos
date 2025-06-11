@@ -122,9 +122,24 @@ dependencies {
   implementation "com.facebook.react:react-native:+"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation fileTree(dir: "libs", include: ["*.jar"])
+
+//  Jackson
   implementation 'com.fasterxml.jackson.core:jackson-core:2.12.7'
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.7'
   implementation 'com.fasterxml.jackson.core:jackson-annotations:2.12.7'
+
+  // Apache Commons
+  implementation 'commons-io:commons-io:2.17.0'
+  implementation 'org.apache.commons:commons-lang3:3.17.0'
+  implementation 'commons-net:commons-net:3.11.1'
+  implementation 'commons-validator:commons-validator:1.9.0'
+
+  // Apache HTTP
+  implementation 'org.apache.httpcomponents:httpcore:4.4.16'
+  implementation 'org.apache.httpcomponents:httpmime:4.5.14'
+
+  // OpenCSV
+  implementation 'com.opencsv:opencsv:2.3'
 }
 
 if (isNewArchitectureEnabled()) {
@@ -133,4 +148,15 @@ if (isNewArchitectureEnabled()) {
     libraryName = "ZebraLinkos"
     codegenJavaPackageName = "com.zebralinkos"
   }
+}
+
+
+android {
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+    }
 }
