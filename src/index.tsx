@@ -20,17 +20,6 @@ const ZebraLinkosModule = isTurboModuleEnabled
   ? require('./NativeZebraLinkos').default
   : NativeModules.ZebraLinkos;
 
-const ZebraLinkos = ZebraLinkosModule
-  ? ZebraLinkosModule
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
-
 export function writeTCP(ipAddress: string, zpl: string): Promise<boolean> {
   return ZebraLinkos.writeTCP(ipAddress, zpl);
 }
@@ -70,6 +59,18 @@ export function checkUSBPermission(deviceId: string): Promise<boolean> {
   return ZebraLinkos.checkUSBPermission(deviceId);
 }
 
+export interface ZebraLinkosModule {
+  writeTCP: typeof writeTCP;
+  scanNetwork: typeof scanNetwork;
+  scanBluetooth: typeof scanBluetooth;
+  scanBluetoothLE: typeof scanBluetoothLE;
+  scanUSB: typeof scanUSB;
+  writeBLE: typeof writeBLE;
+  writeBTInsecure: typeof writeBTInsecure;
+  writeUSB: typeof writeUSB;
+  checkUSBPermission: typeof checkUSBPermission;
+}
+
 export type {
   DiscoveredPrinter,
   DiscoveredPrinterBluetooth,
@@ -77,3 +78,14 @@ export type {
   DiscoveredPrinterNetwork,
   DiscoveredPrinterUSB,
 };
+
+export const ZebraLinkos: ZebraLinkosModule = ZebraLinkosModule
+  ? ZebraLinkosModule
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
