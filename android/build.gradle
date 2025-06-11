@@ -139,7 +139,7 @@ dependencies {
   implementation 'org.apache.httpcomponents:httpmime:4.5.14'
 
   // OpenCSV
-  implementation 'com.opencsv:opencsv:2.3'
+  implementation 'net.sf.opencsv:opencsv:2.3'
 }
 
 if (isNewArchitectureEnabled()) {
