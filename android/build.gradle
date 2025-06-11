@@ -48,8 +48,12 @@ def supportsNamespace() {
 }
 
 android {
-  packagingOptions {
-
+    packagingOptions {
+      exclude 'META-INF/DEPENDENCIES'
+      exclude 'META-INF/NOTICE'
+      exclude 'META-INF/LICENSE'
+      exclude 'META-INF/LICENSE.txt'
+      exclude 'META-INF/NOTICE.txt'
   }
 
   if (supportsNamespace()) {
@@ -148,15 +152,4 @@ if (isNewArchitectureEnabled()) {
     libraryName = "ZebraLinkos"
     codegenJavaPackageName = "com.zebralinkos"
   }
-}
-
-
-android {
-    packagingOptions {
-        exclude 'META-INF/DEPENDENCIES'
-        exclude 'META-INF/NOTICE'
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/NOTICE.txt'
-    }
 }
