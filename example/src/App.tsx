@@ -28,6 +28,7 @@ import type {
   DiscoveredPrinterBluetooth,
   DiscoveredPrinterBluetoothLe,
 } from 'react-native-zebra-linkos';
+import type { PrinterStatus } from '../../src/@types';
 
 const App = () => {
   const [devices, setDevices] = useState<DiscoveredPrinter[]>([]);
@@ -223,7 +224,7 @@ const App = () => {
 
   const checkPrinterStatus = async (
     device: DiscoveredPrinter
-  ): Promise<any> => {
+  ): Promise<PrinterStatus> => {
     switch (device.origin) {
       case 'net':
         return checkTCPPrinterStatus(device.address);
@@ -234,7 +235,9 @@ const App = () => {
       case 'usb':
         return checkUSBPrinterStatus(device.address);
       default:
-        return 'Unknown device type';
+        return Promise.reject(
+          new Error(`Unsupported printer origin: ${device.origin}`)
+        );
     }
   };
 

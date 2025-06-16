@@ -50,7 +50,8 @@ export interface PrinterStatus {
   isRibbonOut: boolean;
   labelLengthInDots: number;
   labelsRemainingInBatch: number;
-  mediaType:
+  numberOfFormatsInReceiveBuffer: number;
+  printMode:
     | 'Applicator'
     | 'Cutter'
     | 'Delayed_Cut'
