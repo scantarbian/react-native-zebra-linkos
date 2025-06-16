@@ -646,7 +646,7 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
   }
 
   @ReactMethod
-  override fun checkBTInsecurePrinterStatus(macAddress: String, promise: Promise) {
+  override fun checkBTPrinterStatus(macAddress: String, promise: Promise) {
     val printerConnection = BluetoothConnectionInsecure(macAddress)
 
     try {

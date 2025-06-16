@@ -36,7 +36,7 @@ abstract class ZebraLinkosSpec internal constructor(context: ReactApplicationCon
 
   abstract fun checkBLEPrinterStatus(macAddress: String, promise: Promise)
 
-  abstract fun checkBTInsecurePrinterStatus(macAddress: String, promise: Promise)
+  abstract fun checkBTPrinterStatus(macAddress: String, promise: Promise)
 
   abstract fun checkUSBPrinterStatus(deviceId: String, promise: Promise)
 }
