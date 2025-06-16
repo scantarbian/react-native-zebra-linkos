@@ -19,6 +19,7 @@ import com.zebra.sdk.btleComm.BluetoothLeConnection
 import com.zebra.sdk.btleComm.BluetoothLeDiscoverer
 import com.zebra.sdk.btleComm.DiscoveredPrinterBluetoothLe
 import com.zebra.sdk.comm.BluetoothConnectionInsecure
+import com.zebra.sdk.comm.Connection
 import com.zebra.sdk.comm.ConnectionException
 import com.zebra.sdk.comm.TcpConnection
 import com.zebra.sdk.comm.UsbConnection
@@ -103,6 +104,27 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
     return NAME
   }
 
+  private fun unpausePrinter(connection: Connection) {
+    try {
+      val printer = ZebraPrinterFactory.getInstance(connection)
+      if (printer.currentStatus.isPaused) {
+        Log.d(NAME, "Resuming printer")
+
+        connection.write("~PS".toByteArray())
+      } else {
+        Log.d(NAME, "Printer is not paused, no action taken")
+      }
+    } catch (e: ConnectionException) {
+      Log.e(NAME, "Error resuming printer: ${e.localizedMessage}")
+      e.localizedMessage?.let { Log.e(NAME, it) }
+      e.printStackTrace()
+    } catch (e: ZebraPrinterLanguageUnknownException) {
+      Log.e(NAME, "Error getting printer language: ${e.localizedMessage}")
+      e.localizedMessage?.let { Log.e(NAME, it) }
+      e.printStackTrace()
+    }
+  }
+
   @ReactMethod
   override fun writeTCP(ipAddress: String, zpl: String, promise: Promise) {
     val printerConnection = TcpConnection(ipAddress, TcpConnection.DEFAULT_ZPL_TCP_PORT)
@@ -110,6 +132,9 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
     try {
       Log.d(NAME, "Going to write via TCP with IP Address: $ipAddress")
       printerConnection.open()
+
+      // Unpause the printer if it is paused
+      unpausePrinter(printerConnection)
 
       Log.d(NAME, "Connection is open: ${printerConnection.isConnected}, sending data")
       printerConnection.write(zpl.toByteArray())
@@ -132,6 +157,9 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
     try {
       printerConnection.open()
 
+      // Unpause the printer if it is paused
+      unpausePrinter(printerConnection)
+
       printerConnection.write(zpl.toByteArray())
 
       Thread.sleep(500)
@@ -152,6 +180,9 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
 
     try {
       printerConnection.open()
+
+      // Unpause the printer if it is paused
+      unpausePrinter(printerConnection)
 
       printerConnection.write(zpl.toByteArray())
 
@@ -230,10 +261,15 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
       zpl: String? = pendingZpl,
       promise: Promise? = pendingPromise
   ) {
-    val conn = UsbConnection(usbManager, device)
+    val printerConnection = UsbConnection(usbManager, device)
+
     try {
-      conn.open()
-      conn.write(zpl!!.toByteArray())
+      printerConnection.open()
+
+      // Unpause the printer if it is paused
+      unpausePrinter(printerConnection)
+
+      printerConnection.write(zpl!!.toByteArray())
       Thread.sleep(500)
       promise?.resolve(true)
     } catch (e: ConnectionException) {
@@ -241,7 +277,7 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
       promise?.reject("E_USB_CONNECTION", e.localizedMessage, e)
     } finally {
       try {
-        conn.close()
+        printerConnection.close()
       } catch (e: ConnectionException) {
         Log.e(NAME, "Error closing USB connection: ${e.localizedMessage}")
       }
@@ -266,8 +302,6 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
       val printerStatus = printer.currentStatus
 
       val printerStatusMap = convertStatusToWritableMap(deviceId, printerStatus)
-
-      Log.d(NAME, "Printer status: $printerStatusMap")
 
       promise?.resolve(printerStatusMap)
     } catch (e: ConnectionException) {
@@ -565,7 +599,6 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
 
       val printerStatusMap = convertStatusToWritableMap(ipAddress, printerStatus)
 
-      Log.d(NAME, "Printer status: $printerStatusMap")
 
       promise.resolve(printerStatusMap)
     } catch (e: ConnectionException) {
@@ -596,8 +629,6 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
 
       val printerStatusMap = convertStatusToWritableMap(macAddress, printerStatus)
 
-      Log.d(NAME, "Printer status: $printerStatusMap")
-
       promise.resolve(printerStatusMap)
     } catch (e: ConnectionException) {
       Log.e(NAME, "Error checking BLE printer status: ${e.localizedMessage}")
@@ -626,8 +657,6 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
       val printerStatus = printer.currentStatus
 
       val printerStatusMap = convertStatusToWritableMap(macAddress, printerStatus)
-
-      Log.d(NAME, "Printer status: $printerStatusMap")
 
       promise.resolve(printerStatusMap)
     } catch (e: ConnectionException) {
