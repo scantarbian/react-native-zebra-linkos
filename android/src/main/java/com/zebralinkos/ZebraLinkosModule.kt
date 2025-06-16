@@ -471,6 +471,26 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
     }
   }
 
+  @ReactMethod
+  override fun checkTCPPrinterStatus(ipAddress: String, promise: Promise) {
+    TODO("Not yet implemented")
+  }
+
+  @ReactMethod
+  override fun checkBLEPrinterStatus(macAddress: String, promise: Promise) {
+    TODO("Not yet implemented")
+  }
+
+  @ReactMethod
+  override fun checkBTInsecurePrinterStatus(macAddress: String, promise: Promise) {
+    TODO("Not yet implemented")
+  }
+
+  @ReactMethod
+  override fun checkUSBPrinterStatus(deviceId: String, promise: Promise) {
+    TODO("Not yet implemented")
+  }
+
   companion object {
     const val NAME = "ZebraLinkos"
   }
