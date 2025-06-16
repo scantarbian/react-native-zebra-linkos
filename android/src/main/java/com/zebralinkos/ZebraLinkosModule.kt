@@ -56,6 +56,7 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
             val device: UsbDevice? = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
             val granted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
             val mode = intent.getStringExtra("Mode")
+            val deviceId = intent.getStringExtra("deviceId")
 
             Log.d(
                 NAME,
@@ -65,13 +66,18 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
               if (pendingPermissionPromise != null) {
                 pendingPermissionPromise?.resolve(true)
               } else if (device != null) {
-                if (mode == "Status") {
-                  checkUsbStatusNow(device.deviceId.toString(), device, pendingPromise)
-                } else if (mode == "Print") {
-                  writeToUsbNow(device, pendingZpl, pendingPromise)
-                } else {
-                  Log.e(NAME, "Unknown mode: $mode")
-                  pendingPromise?.reject("E_USB_MODE", "Unknown USB mode: $mode")
+                when (mode) {
+                  "Status" -> {
+                    return checkUsbStatusNow(deviceId ?: device.deviceName, device, pendingPromise)
+                  }
+                  "Print" -> {
+                    return writeToUsbNow(device, pendingZpl, pendingPromise)
+                  }
+                  else -> {
+                    Log.e(NAME, "Unknown mode: $mode")
+                    pendingPromise?.reject("E_USB_MODE", "Unknown USB mode: $mode")
+                    return
+                  }
                 }
               }
             } else {
@@ -246,7 +252,11 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
     }
   }
 
-  private fun checkUsbStatusNow(deviceId: String, device: UsbDevice,       promise: Promise? = pendingPromise) {
+  private fun checkUsbStatusNow(
+      deviceId: String,
+      device: UsbDevice,
+      promise: Promise? = pendingPromise
+  ) {
     val conn = UsbConnection(usbManager, device)
     try {
       conn.open()
@@ -664,6 +674,7 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
             setPackage(reactApplicationContext.packageName)
             putExtra(UsbManager.EXTRA_DEVICE, device)
             putExtra("Mode", "Status")
+            putExtra("deviceId", deviceId)
           }
 
       val permissionIntent =
