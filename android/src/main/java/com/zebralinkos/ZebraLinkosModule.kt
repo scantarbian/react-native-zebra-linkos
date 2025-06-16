@@ -22,6 +22,9 @@ import com.zebra.sdk.comm.BluetoothConnectionInsecure
 import com.zebra.sdk.comm.ConnectionException
 import com.zebra.sdk.comm.TcpConnection
 import com.zebra.sdk.comm.UsbConnection
+import com.zebra.sdk.printer.PrinterStatus
+import com.zebra.sdk.printer.ZebraPrinterFactory
+import com.zebra.sdk.printer.ZebraPrinterLanguageUnknownException
 import com.zebra.sdk.printer.discovery.BluetoothDiscoverer
 import com.zebra.sdk.printer.discovery.DiscoveredPrinter
 import com.zebra.sdk.printer.discovery.DiscoveredPrinterBluetooth
@@ -473,7 +476,52 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
 
   @ReactMethod
   override fun checkTCPPrinterStatus(ipAddress: String, promise: Promise) {
-    TODO("Not yet implemented")
+    val printerConnection = TcpConnection(ipAddress, TcpConnection.DEFAULT_ZPL_TCP_PORT)
+
+    fun convertToWritableMap(printerAddress: String, status: PrinterStatus): WritableMap {
+      val map = Arguments.createMap()
+      map.putString("address", printerAddress)
+      map.putBoolean("isHeadCold", status.isHeadCold)
+      map.putBoolean("isHeadTooHot", status.isHeadTooHot)
+      map.putBoolean("isPaperOut", status.isPaperOut)
+      map.putBoolean("isPartialFormatInProgress", status.isPartialFormatInProgress)
+      map.putBoolean("isPaused", status.isPaused)
+      map.putBoolean("isReadyToPrint", status.isReadyToPrint)
+      map.putBoolean("isReceiveBufferFull", status.isReceiveBufferFull)
+      map.putBoolean("isRibbonOut", status.isRibbonOut)
+      map.putInt("labelLengthInDots", status.labelLengthInDots)
+      map.putInt("labelsRemainingInBatch", status.labelsRemainingInBatch)
+      map.putInt("numberOfFormatsInReceiveBuffer", status.numberOfFormatsInReceiveBuffer)
+      map.putString("printMode", status.printMode.toString())
+
+      return map
+    }
+
+    try {
+      printerConnection.open()
+
+      val printer = ZebraPrinterFactory.getInstance(printerConnection)
+
+      val printerStatus = printer.currentStatus
+
+      val printerStatusMap = convertToWritableMap(ipAddress, printerStatus)
+
+      Log.d(NAME, "Printer status: $printerStatusMap")
+
+      promise.resolve(printerStatusMap)
+    } catch (e: ConnectionException) {
+      Log.e(NAME, "Error checking TCP printer status: ${e.localizedMessage}")
+      e.localizedMessage?.let { Log.e(NAME, it) }
+      e.printStackTrace()
+      promise.reject("E_TCP_STATUS", e.localizedMessage, e)
+    } catch (e: ZebraPrinterLanguageUnknownException) {
+      Log.e(NAME, "Error getting printer language: ${e.localizedMessage}")
+      e.localizedMessage?.let { Log.e(NAME, it) }
+      e.printStackTrace()
+      promise.reject("E_TCP_STATUS", e.localizedMessage, e)
+    } finally {
+      printerConnection.close()
+    }
   }
 
   @ReactMethod
