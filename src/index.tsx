@@ -4,6 +4,7 @@ import type {
   DiscoveredPrinterBluetoothLe,
   DiscoveredPrinterNetwork,
   DiscoveredPrinterUSB,
+  PrinterStatus,
 } from './@types/index';
 
 import { NativeModules, Platform } from 'react-native';
@@ -24,6 +25,10 @@ interface ZebraLinkosNativeModule {
   writeBTInsecure(macAddress: string, zpl: string): Promise<boolean>;
   writeUSB(deviceId: string, zpl: string): Promise<boolean>;
   checkUSBPermission(deviceId: string): Promise<boolean>;
+  checkTCPPrinterStatus(ipAddress: string): Promise<PrinterStatus>;
+  checkBLEPrinterStatus(macAddress: string): Promise<PrinterStatus>;
+  checkBTPrinterStatus(macAddress: string): Promise<PrinterStatus>;
+  checkUSBPrinterStatus(deviceId: string): Promise<PrinterStatus>;
 }
 
 // @ts-expect-error
@@ -89,10 +94,35 @@ export function checkUSBPermission(deviceId: string): Promise<boolean> {
   return ZebraLinkos.checkUSBPermission(deviceId);
 }
 
+export function checkTCPPrinterStatus(
+  ipAddress: string
+): Promise<PrinterStatus> {
+  return ZebraLinkos.checkTCPPrinterStatus(ipAddress);
+}
+
+export function checkBLEPrinterStatus(
+  macAddress: string
+): Promise<PrinterStatus> {
+  return ZebraLinkos.checkBLEPrinterStatus(macAddress);
+}
+
+export function checkBTPrinterStatus(
+  macAddress: string
+): Promise<PrinterStatus> {
+  return ZebraLinkos.checkBTPrinterStatus(macAddress);
+}
+
+export function checkUSBPrinterStatus(
+  deviceId: string
+): Promise<PrinterStatus> {
+  return ZebraLinkos.checkUSBPrinterStatus(deviceId);
+}
+
 export type {
   DiscoveredPrinter,
   DiscoveredPrinterBluetooth,
   DiscoveredPrinterBluetoothLe,
   DiscoveredPrinterNetwork,
   DiscoveredPrinterUSB,
+  PrinterStatus,
 };

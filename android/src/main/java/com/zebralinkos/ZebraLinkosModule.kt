@@ -19,9 +19,13 @@ import com.zebra.sdk.btleComm.BluetoothLeConnection
 import com.zebra.sdk.btleComm.BluetoothLeDiscoverer
 import com.zebra.sdk.btleComm.DiscoveredPrinterBluetoothLe
 import com.zebra.sdk.comm.BluetoothConnectionInsecure
+import com.zebra.sdk.comm.Connection
 import com.zebra.sdk.comm.ConnectionException
 import com.zebra.sdk.comm.TcpConnection
 import com.zebra.sdk.comm.UsbConnection
+import com.zebra.sdk.printer.PrinterStatus
+import com.zebra.sdk.printer.ZebraPrinterFactory
+import com.zebra.sdk.printer.ZebraPrinterLanguageUnknownException
 import com.zebra.sdk.printer.discovery.BluetoothDiscoverer
 import com.zebra.sdk.printer.discovery.DiscoveredPrinter
 import com.zebra.sdk.printer.discovery.DiscoveredPrinterBluetooth
@@ -52,6 +56,8 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
           if (intent.action == ACTION_USB_PERMISSION) {
             val device: UsbDevice? = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
             val granted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
+            val mode = intent.getStringExtra("Mode")
+            val deviceId = intent.getStringExtra("deviceId")
 
             Log.d(
                 NAME,
@@ -61,7 +67,19 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
               if (pendingPermissionPromise != null) {
                 pendingPermissionPromise?.resolve(true)
               } else if (device != null) {
-                writeToUsbNow(device)
+                when (mode) {
+                  "Status" -> {
+                    return checkUsbStatusNow(deviceId ?: device.deviceName, device, pendingPromise)
+                  }
+                  "Print" -> {
+                    return writeToUsbNow(device, pendingZpl, pendingPromise)
+                  }
+                  else -> {
+                    Log.e(NAME, "Unknown mode: $mode")
+                    pendingPromise?.reject("E_USB_MODE", "Unknown USB mode: $mode")
+                    return
+                  }
+                }
               }
             } else {
               pendingPermissionPromise?.reject(
@@ -86,6 +104,27 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
     return NAME
   }
 
+  private fun unpausePrinter(connection: Connection) {
+    try {
+      val printer = ZebraPrinterFactory.getInstance(connection)
+      if (printer.currentStatus.isPaused) {
+        Log.d(NAME, "Resuming printer")
+
+        connection.write("~PS".toByteArray())
+      } else {
+        Log.d(NAME, "Printer is not paused, no action taken")
+      }
+    } catch (e: ConnectionException) {
+      Log.e(NAME, "Error resuming printer: ${e.localizedMessage}")
+      e.localizedMessage?.let { Log.e(NAME, it) }
+      e.printStackTrace()
+    } catch (e: ZebraPrinterLanguageUnknownException) {
+      Log.e(NAME, "Error getting printer language: ${e.localizedMessage}")
+      e.localizedMessage?.let { Log.e(NAME, it) }
+      e.printStackTrace()
+    }
+  }
+
   @ReactMethod
   override fun writeTCP(ipAddress: String, zpl: String, promise: Promise) {
     val printerConnection = TcpConnection(ipAddress, TcpConnection.DEFAULT_ZPL_TCP_PORT)
@@ -93,6 +132,9 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
     try {
       Log.d(NAME, "Going to write via TCP with IP Address: $ipAddress")
       printerConnection.open()
+
+      // Unpause the printer if it is paused
+      unpausePrinter(printerConnection)
 
       Log.d(NAME, "Connection is open: ${printerConnection.isConnected}, sending data")
       printerConnection.write(zpl.toByteArray())
@@ -115,6 +157,9 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
     try {
       printerConnection.open()
 
+      // Unpause the printer if it is paused
+      unpausePrinter(printerConnection)
+
       printerConnection.write(zpl.toByteArray())
 
       Thread.sleep(500)
@@ -135,6 +180,9 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
 
     try {
       printerConnection.open()
+
+      // Unpause the printer if it is paused
+      unpausePrinter(printerConnection)
 
       printerConnection.write(zpl.toByteArray())
 
@@ -177,8 +225,9 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
 
       val explicitIntent =
           Intent(ACTION_USB_PERMISSION).apply {
-            setPackage(reactApplicationContext.packageName) // Makes intent explicit ✅
+            setPackage(reactApplicationContext.packageName)
             putExtra(UsbManager.EXTRA_DEVICE, device)
+            putExtra("Mode", "Print")
           }
 
       val permissionIntent =
@@ -212,11 +261,15 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
       zpl: String? = pendingZpl,
       promise: Promise? = pendingPromise
   ) {
-    var conn: UsbConnection? = null
+    val printerConnection = UsbConnection(usbManager, device)
+
     try {
-      conn = UsbConnection(usbManager, device)
-      conn.open()
-      conn.write(zpl!!.toByteArray())
+      printerConnection.open()
+
+      // Unpause the printer if it is paused
+      unpausePrinter(printerConnection)
+
+      printerConnection.write(zpl!!.toByteArray())
       Thread.sleep(500)
       promise?.resolve(true)
     } catch (e: ConnectionException) {
@@ -224,10 +277,50 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
       promise?.reject("E_USB_CONNECTION", e.localizedMessage, e)
     } finally {
       try {
-        conn?.close()
+        printerConnection.close()
       } catch (e: ConnectionException) {
         Log.e(NAME, "Error closing USB connection: ${e.localizedMessage}")
       }
+      // Clean up pending
+      pendingDevice = null
+      pendingZpl = null
+      pendingPromise = null
+    }
+  }
+
+  private fun checkUsbStatusNow(
+      deviceId: String,
+      device: UsbDevice,
+      promise: Promise? = pendingPromise
+  ) {
+    val conn = UsbConnection(usbManager, device)
+    try {
+      conn.open()
+
+      val printer = ZebraPrinterFactory.getInstance(conn)
+
+      val printerStatus = printer.currentStatus
+
+      val printerStatusMap = convertStatusToWritableMap(deviceId, printerStatus)
+
+      promise?.resolve(printerStatusMap)
+    } catch (e: ConnectionException) {
+      Log.e(NAME, "Error checking USB printer status: ${e.localizedMessage}")
+      e.localizedMessage?.let { Log.e(NAME, it) }
+      e.printStackTrace()
+      promise?.reject("E_USB_STATUS", e.localizedMessage, e)
+    } catch (e: ZebraPrinterLanguageUnknownException) {
+      Log.e(NAME, "Error getting printer language: ${e.localizedMessage}")
+      e.localizedMessage?.let { Log.e(NAME, it) }
+      e.printStackTrace()
+      promise?.reject("E_USB_STATUS", e.localizedMessage, e)
+    } finally {
+      try {
+        conn.close()
+      } catch (e: ConnectionException) {
+        Log.e(NAME, "Error closing USB connection: ${e.localizedMessage}")
+      }
+
       // Clean up pending
       pendingDevice = null
       pendingZpl = null
@@ -289,7 +382,7 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
 
           override fun foundPrinter(printer: DiscoveredPrinter) {
             try {
-              Log.d(NAME, "Found printer: ${printer}")
+              Log.d(NAME, "Found printer: $printer")
               val printerNetwork = printer as DiscoveredPrinterNetwork
               this.printers.pushMap(convertToWritableMap(printerNetwork))
               Log.d(NAME, "Found printer: ${printerNetwork.address}")
@@ -468,6 +561,156 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
       e.localizedMessage?.let { Log.e(NAME, it) }
       e.printStackTrace()
       promise.reject("E_USB_SCAN", e.localizedMessage, e)
+    }
+  }
+
+  private fun convertStatusToWritableMap(
+      printerAddress: String,
+      status: PrinterStatus
+  ): WritableMap {
+    val map = Arguments.createMap()
+    map.putString("address", printerAddress)
+    map.putBoolean("isHeadCold", status.isHeadCold)
+    map.putBoolean("isHeadTooHot", status.isHeadTooHot)
+    map.putBoolean("isPaperOut", status.isPaperOut)
+    map.putBoolean("isPartialFormatInProgress", status.isPartialFormatInProgress)
+    map.putBoolean("isPaused", status.isPaused)
+    map.putBoolean("isReadyToPrint", status.isReadyToPrint)
+    map.putBoolean("isReceiveBufferFull", status.isReceiveBufferFull)
+    map.putBoolean("isRibbonOut", status.isRibbonOut)
+    map.putInt("labelLengthInDots", status.labelLengthInDots)
+    map.putInt("labelsRemainingInBatch", status.labelsRemainingInBatch)
+    map.putInt("numberOfFormatsInReceiveBuffer", status.numberOfFormatsInReceiveBuffer)
+    map.putString("printMode", status.printMode.toString())
+
+    return map
+  }
+
+  @ReactMethod
+  override fun checkTCPPrinterStatus(ipAddress: String, promise: Promise) {
+    val printerConnection = TcpConnection(ipAddress, TcpConnection.DEFAULT_ZPL_TCP_PORT)
+
+    try {
+      printerConnection.open()
+
+      val printer = ZebraPrinterFactory.getInstance(printerConnection)
+
+      val printerStatus = printer.currentStatus
+
+      val printerStatusMap = convertStatusToWritableMap(ipAddress, printerStatus)
+
+
+      promise.resolve(printerStatusMap)
+    } catch (e: ConnectionException) {
+      Log.e(NAME, "Error checking TCP printer status: ${e.localizedMessage}")
+      e.localizedMessage?.let { Log.e(NAME, it) }
+      e.printStackTrace()
+      promise.reject("E_TCP_STATUS", e.localizedMessage, e)
+    } catch (e: ZebraPrinterLanguageUnknownException) {
+      Log.e(NAME, "Error getting printer language: ${e.localizedMessage}")
+      e.localizedMessage?.let { Log.e(NAME, it) }
+      e.printStackTrace()
+      promise.reject("E_TCP_STATUS", e.localizedMessage, e)
+    } finally {
+      printerConnection.close()
+    }
+  }
+
+  @ReactMethod
+  override fun checkBLEPrinterStatus(macAddress: String, promise: Promise) {
+    val printerConnection = BluetoothLeConnection(macAddress, this.reactApplicationContext)
+
+    try {
+      printerConnection.open()
+
+      val printer = ZebraPrinterFactory.getInstance(printerConnection)
+
+      val printerStatus = printer.currentStatus
+
+      val printerStatusMap = convertStatusToWritableMap(macAddress, printerStatus)
+
+      promise.resolve(printerStatusMap)
+    } catch (e: ConnectionException) {
+      Log.e(NAME, "Error checking BLE printer status: ${e.localizedMessage}")
+      e.localizedMessage?.let { Log.e(NAME, it) }
+      e.printStackTrace()
+      promise.reject("E_BLE_STATUS", e.localizedMessage, e)
+    } catch (e: ZebraPrinterLanguageUnknownException) {
+      Log.e(NAME, "Error getting printer language: ${e.localizedMessage}")
+      e.localizedMessage?.let { Log.e(NAME, it) }
+      e.printStackTrace()
+      promise.reject("E_BLE_STATUS", e.localizedMessage, e)
+    } finally {
+      printerConnection.close()
+    }
+  }
+
+  @ReactMethod
+  override fun checkBTPrinterStatus(macAddress: String, promise: Promise) {
+    val printerConnection = BluetoothConnectionInsecure(macAddress)
+
+    try {
+      printerConnection.open()
+
+      val printer = ZebraPrinterFactory.getInstance(printerConnection)
+
+      val printerStatus = printer.currentStatus
+
+      val printerStatusMap = convertStatusToWritableMap(macAddress, printerStatus)
+
+      promise.resolve(printerStatusMap)
+    } catch (e: ConnectionException) {
+      Log.e(NAME, "Error checking BT insecure printer status: ${e.localizedMessage}")
+      e.localizedMessage?.let { Log.e(NAME, it) }
+      e.printStackTrace()
+      promise.reject("E_BT_INSECURE_STATUS", e.localizedMessage, e)
+    } catch (e: ZebraPrinterLanguageUnknownException) {
+      Log.e(NAME, "Error getting printer language: ${e.localizedMessage}")
+      e.localizedMessage?.let { Log.e(NAME, it) }
+      e.printStackTrace()
+      promise.reject("E_BT_INSECURE_STATUS", e.localizedMessage, e)
+    } finally {
+      printerConnection.close()
+    }
+  }
+
+  @ReactMethod
+  override fun checkUSBPrinterStatus(deviceId: String, promise: Promise) {
+    val device = getUSBDeviceById(deviceId)
+
+    if (device == null) {
+      Log.e(NAME, "USB device with ID $deviceId not found")
+      promise.reject("E_USB_DEVICE_NOT_FOUND", "USB device with ID $deviceId not found")
+      return
+    }
+
+    //      Request permission for the USB device
+    if (usbManager.hasPermission(device)) {
+      checkUsbStatusNow(deviceId, device, promise)
+    } else {
+      pendingDevice = device
+      pendingPromise = promise
+
+      if (!usbReceiverRegistered) {
+        val filter = IntentFilter(ACTION_USB_PERMISSION)
+        ContextCompat.registerReceiver(
+            reactApplicationContext, usbReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+        usbReceiverRegistered = true
+      }
+
+      val explicitIntent =
+          Intent(ACTION_USB_PERMISSION).apply {
+            setPackage(reactApplicationContext.packageName)
+            putExtra(UsbManager.EXTRA_DEVICE, device)
+            putExtra("Mode", "Status")
+            putExtra("deviceId", deviceId)
+          }
+
+      val permissionIntent =
+          PendingIntent.getBroadcast(
+              reactApplicationContext, 0, explicitIntent, PendingIntent.FLAG_MUTABLE)
+
+      usbManager.requestPermission(device, permissionIntent)
     }
   }
 

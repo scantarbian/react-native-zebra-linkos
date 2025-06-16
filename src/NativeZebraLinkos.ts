@@ -5,6 +5,7 @@ import type {
   DiscoveredPrinterBluetoothLe,
   DiscoveredPrinterNetwork,
   DiscoveredPrinterUSB,
+  PrinterStatus,
 } from './@types/index';
 export interface Spec extends TurboModule {
   writeTCP(ipAddress: string, zpl: string): Promise<boolean>;
@@ -16,6 +17,10 @@ export interface Spec extends TurboModule {
   scanBluetooth(): Promise<DiscoveredPrinterBluetooth[]>;
   scanBluetoothLE(): Promise<DiscoveredPrinterBluetoothLe[]>;
   scanUSB(): Promise<DiscoveredPrinterUSB[]>;
+  checkTCPPrinterStatus(ipAddress: string): Promise<PrinterStatus>;
+  checkBLEPrinterStatus(macAddress: string): Promise<PrinterStatus>;
+  checkBTPrinterStatus(macAddress: string): Promise<PrinterStatus>;
+  checkUSBPrinterStatus(deviceId: string): Promise<PrinterStatus>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('ZebraLinkos');

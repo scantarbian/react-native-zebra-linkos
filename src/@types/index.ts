@@ -37,3 +37,31 @@ export interface DiscoveredPrinterUSB extends DiscoveredPrinter {
   manufacturer: string;
   origin: 'usb';
 }
+
+export interface PrinterStatus {
+  address: string;
+  isHeadCold: boolean;
+  isHeadTooHot: boolean;
+  isPaperOut: boolean;
+  isPartialFormatInProgress: boolean;
+  isPaused: boolean;
+  isReadyToPrint: boolean;
+  isReceiveBufferFull: boolean;
+  isRibbonOut: boolean;
+  labelLengthInDots: number;
+  labelsRemainingInBatch: number;
+  numberOfFormatsInReceiveBuffer: number;
+  printMode:
+    | 'Applicator'
+    | 'Cutter'
+    | 'Delayed_Cut'
+    | 'Kiosk'
+    | 'Linerless_Peel'
+    | 'Linerless_Rewind'
+    | 'Partial_Cutter'
+    | 'Peel_Off'
+    | 'Rewind'
+    | 'Tear_Off'
+    | 'Rfid'
+    | 'Unknown';
+}

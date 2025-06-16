@@ -18,12 +18,17 @@ import {
   scanBluetoothLE,
   scanUSB,
   checkUSBPermission,
+  checkBLEPrinterStatus,
+  checkBTPrinterStatus,
+  checkTCPPrinterStatus,
+  checkUSBPrinterStatus,
 } from 'react-native-zebra-linkos';
 import type {
   DiscoveredPrinter,
   DiscoveredPrinterBluetooth,
   DiscoveredPrinterBluetoothLe,
 } from 'react-native-zebra-linkos';
+import type { PrinterStatus } from '../../src/@types';
 
 const App = () => {
   const [devices, setDevices] = useState<DiscoveredPrinter[]>([]);
@@ -217,6 +222,35 @@ const App = () => {
     }
   };
 
+  const checkPrinterStatus = async (
+    device: DiscoveredPrinter
+  ): Promise<PrinterStatus> => {
+    switch (device.origin) {
+      case 'net':
+        return checkTCPPrinterStatus(device.address);
+      case 'bt':
+        return checkBTPrinterStatus(device.address);
+      case 'ble':
+        return checkBLEPrinterStatus(device.address);
+      case 'usb':
+        return checkUSBPrinterStatus(device.address);
+      default:
+        return Promise.reject(
+          new Error(`Unsupported printer origin: ${device.origin}`)
+        );
+    }
+  };
+
+  const handleCheckPrinterStatus = async (device: DiscoveredPrinter) => {
+    try {
+      const status = await checkPrinterStatus(device);
+      console.log('Printer Status:', status);
+    } catch (err) {
+      console.error('Error checking printer status:', err);
+      ToastAndroid.show(`Error checking printer status`, ToastAndroid.SHORT);
+    }
+  };
+
   const displayDevices = () => {
     if (isScanning) {
       return (
@@ -290,6 +324,11 @@ const App = () => {
               {macAddress}
             </Text>
           </View>
+          <Button
+            key={`device-${id}-status`}
+            title="Check Status"
+            onPress={() => handleCheckPrinterStatus(device)}
+          />
           <Button
             key={`device-${id}-perms`}
             title="Check Permissions"
