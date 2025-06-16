@@ -124,4 +124,5 @@ export type {
   DiscoveredPrinterBluetoothLe,
   DiscoveredPrinterNetwork,
   DiscoveredPrinterUSB,
+  PrinterStatus,
 };
