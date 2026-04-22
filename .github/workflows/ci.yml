@@ -70,27 +70,30 @@ jobs:
             ${{ runner.os }}-turborepo-android-
 
       - name: Check turborepo cache for Android
+        id: check-turbo-cache
         run: |
           TURBO_CACHE_STATUS=$(node -p "($(yarn turbo run build:android --cache-dir="${{ env.TURBO_CACHE_DIR }}" --dry=json)).tasks.find(t => t.task === 'build:android').cache.status")
 
           if [[ $TURBO_CACHE_STATUS == "HIT" ]]; then
-            echo "turbo_cache_hit=1" >> $GITHUB_ENV
+            echo "hit=true" >> $GITHUB_OUTPUT
+          else
+            echo "hit=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Install JDK
-        if: env.turbo_cache_hit != 1
+        if: steps.check-turbo-cache.outputs.hit != 'true'
         uses: actions/setup-java@v3
         with:
           distribution: "zulu"
           java-version: "17"
 
       - name: Finalize Android SDK
-        if: env.turbo_cache_hit != 1
+        if: steps.check-turbo-cache.outputs.hit != 'true'
         run: |
           /bin/bash -c "yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null"
 
       - name: Cache Gradle
-        if: env.turbo_cache_hit != 1
+        if: steps.check-turbo-cache.outputs.hit != 'true'
         uses: actions/cache@v3
         with:
           path: |
@@ -128,15 +131,18 @@ jobs:
             ${{ runner.os }}-turborepo-ios-
 
       - name: Check turborepo cache for iOS
+        id: check-turbo-cache
         run: |
           TURBO_CACHE_STATUS=$(node -p "($(yarn turbo run build:ios --cache-dir="${{ env.TURBO_CACHE_DIR }}" --dry=json)).tasks.find(t => t.task === 'build:ios').cache.status")
 
           if [[ $TURBO_CACHE_STATUS == "HIT" ]]; then
-            echo "turbo_cache_hit=1" >> $GITHUB_ENV
+            echo "hit=true" >> $GITHUB_OUTPUT
+          else
+            echo "hit=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Cache cocoapods
-        if: env.turbo_cache_hit != 1
+        if: steps.check-turbo-cache.outputs.hit != 'true'
         id: cocoapods-cache
         uses: actions/cache@v3
         with:
@@ -147,13 +153,20 @@ jobs:
             ${{ runner.os }}-cocoapods-
 
       - name: Install cocoapods
-        if: env.turbo_cache_hit != 1 && steps.cocoapods-cache.outputs.cache-hit !=
-          'true'
+        if: steps.check-turbo-cache.outputs.hit != 'true' &&
+          steps.cocoapods-cache.outputs.cache-hit != 'true'
+        run: |
+          cd example/ios
+          pod install --repo-update
+        env:
+          NO_FLIPPER: 1
+
+      - name: Generate Podfile.lock for caching
+        if: steps.check-turbo-cache.outputs.hit != 'true' &&
+          steps.cocoapods-cache.outputs.cache-hit != 'true'
         run: |
           cd example/ios
           pod install
-        env:
-          NO_FLIPPER: 1
 
       - name: Build example for iOS
         run: |
