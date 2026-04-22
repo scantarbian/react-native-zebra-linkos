@@ -38,10 +38,10 @@ import com.zebra.sdk.printer.discovery.UsbDiscoverer
 
 @ReactModule(name = ZebraLinkosModule.NAME)
 class ZebraLinkosModule internal constructor(reactContext: ReactApplicationContext) :
-    ZebraLinkosSpec(reactContext) {
+        ZebraLinkosSpec(reactContext) {
 
   private val usbManager =
-      this.reactApplicationContext.getSystemService(Context.USB_SERVICE) as UsbManager
+          this.reactApplicationContext.getSystemService(Context.USB_SERVICE) as UsbManager
   private val ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION"
   //  Handles USB permission requests
   private var usbReceiverRegistered = false
@@ -51,54 +51,61 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
   private var pendingPermissionPromise: Promise? = null
 
   private val usbReceiver =
-      object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-          if (intent.action == ACTION_USB_PERMISSION) {
-            val device: UsbDevice? = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
-            val granted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
-            val mode = intent.getStringExtra("Mode")
-            val deviceId = intent.getStringExtra("deviceId")
+          object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+              if (intent.action == ACTION_USB_PERMISSION) {
+                val device: UsbDevice? = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
+                val granted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
+                val mode = intent.getStringExtra("Mode")
+                val deviceId = intent.getStringExtra("deviceId")
 
-            Log.d(
-                NAME,
-                "USB permission received for device: ${device?.productName}, granted: $granted")
+                Log.d(
+                        NAME,
+                        "USB permission received for device: ${device?.productName}, granted: $granted"
+                )
 
-            if (granted) {
-              if (pendingPermissionPromise != null) {
-                pendingPermissionPromise?.resolve(true)
-              } else if (device != null) {
-                when (mode) {
-                  "Status" -> {
-                    return checkUsbStatusNow(deviceId ?: device.deviceName, device, pendingPromise)
+                if (granted) {
+                  if (pendingPermissionPromise != null) {
+                    pendingPermissionPromise?.resolve(true)
+                  } else if (device != null) {
+                    when (mode) {
+                      "Status" -> {
+                        return checkUsbStatusNow(
+                                deviceId ?: device.deviceName,
+                                device,
+                                pendingPromise
+                        )
+                      }
+                      "Print" -> {
+                        return writeToUsbNow(device, pendingZpl, pendingPromise)
+                      }
+                      else -> {
+                        Log.e(NAME, "Unknown mode: $mode")
+                        pendingPromise?.reject("E_USB_MODE", "Unknown USB mode: $mode")
+                        return
+                      }
+                    }
                   }
-                  "Print" -> {
-                    return writeToUsbNow(device, pendingZpl, pendingPromise)
-                  }
-                  else -> {
-                    Log.e(NAME, "Unknown mode: $mode")
-                    pendingPromise?.reject("E_USB_MODE", "Unknown USB mode: $mode")
-                    return
-                  }
+                } else {
+                  pendingPermissionPromise?.reject(
+                          "E_USB_PERMISSION_DENIED",
+                          "USB permission denied by user"
+                  )
+                  pendingPromise?.reject("E_USB_PERMISSION_DENIED", "USB permission denied by user")
                 }
+
+                // Clean up
+                pendingDevice = null
+                pendingPromise = null
+                pendingPermissionPromise = null
+
+                try {
+                  context.unregisterReceiver(this)
+                } catch (_: Exception) {}
+                usbReceiverRegistered = false
               }
-            } else {
-              pendingPermissionPromise?.reject(
-                  "E_USB_PERMISSION_DENIED", "USB permission denied by user")
-              pendingPromise?.reject("E_USB_PERMISSION_DENIED", "USB permission denied by user")
             }
-
-            // Clean up
-            pendingDevice = null
-            pendingPromise = null
-            pendingPermissionPromise = null
-
-            try {
-              context.unregisterReceiver(this)
-            } catch (_: Exception) {}
-            usbReceiverRegistered = false
           }
-        }
-      }
 
   override fun getName(): String {
     return NAME
@@ -219,20 +226,28 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
       if (!usbReceiverRegistered) {
         val filter = IntentFilter(ACTION_USB_PERMISSION)
         ContextCompat.registerReceiver(
-            reactApplicationContext, usbReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+                reactApplicationContext,
+                usbReceiver,
+                filter,
+                ContextCompat.RECEIVER_NOT_EXPORTED
+        )
         usbReceiverRegistered = true
       }
 
       val explicitIntent =
-          Intent(ACTION_USB_PERMISSION).apply {
-            setPackage(reactApplicationContext.packageName)
-            putExtra(UsbManager.EXTRA_DEVICE, device)
-            putExtra("Mode", "Print")
-          }
+              Intent(ACTION_USB_PERMISSION).apply {
+                setPackage(reactApplicationContext.packageName)
+                putExtra(UsbManager.EXTRA_DEVICE, device)
+                putExtra("Mode", "Print")
+              }
 
       val permissionIntent =
-          PendingIntent.getBroadcast(
-              reactApplicationContext, 0, explicitIntent, PendingIntent.FLAG_MUTABLE)
+              PendingIntent.getBroadcast(
+                      reactApplicationContext,
+                      0,
+                      explicitIntent,
+                      PendingIntent.FLAG_MUTABLE
+              )
 
       usbManager.requestPermission(device, permissionIntent)
     }
@@ -247,19 +262,19 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
     }
 
     val device =
-        deviceList[deviceId]
-            ?: run {
-              Log.e(NAME, "USB device with ID $deviceId is null")
-              return null
-            }
+            deviceList[deviceId]
+                    ?: run {
+                      Log.e(NAME, "USB device with ID $deviceId is null")
+                      return null
+                    }
 
     return device
   }
 
   private fun writeToUsbNow(
-      device: UsbDevice,
-      zpl: String? = pendingZpl,
-      promise: Promise? = pendingPromise
+          device: UsbDevice,
+          zpl: String? = pendingZpl,
+          promise: Promise? = pendingPromise
   ) {
     val printerConnection = UsbConnection(usbManager, device)
 
@@ -289,9 +304,9 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
   }
 
   private fun checkUsbStatusNow(
-      deviceId: String,
-      device: UsbDevice,
-      promise: Promise? = pendingPromise
+          deviceId: String,
+          device: UsbDevice,
+          promise: Promise? = pendingPromise
   ) {
     val conn = UsbConnection(usbManager, device)
     try {
@@ -349,19 +364,27 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
       if (!usbReceiverRegistered) {
         val filter = IntentFilter(ACTION_USB_PERMISSION)
         ContextCompat.registerReceiver(
-            reactApplicationContext, usbReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+                reactApplicationContext,
+                usbReceiver,
+                filter,
+                ContextCompat.RECEIVER_NOT_EXPORTED
+        )
         usbReceiverRegistered = true
       }
 
       val explicitIntent =
-          Intent(ACTION_USB_PERMISSION).apply {
-            setPackage(reactApplicationContext.packageName)
-            putExtra(UsbManager.EXTRA_DEVICE, device)
-          }
+              Intent(ACTION_USB_PERMISSION).apply {
+                setPackage(reactApplicationContext.packageName)
+                putExtra(UsbManager.EXTRA_DEVICE, device)
+              }
 
       val permissionIntent =
-          PendingIntent.getBroadcast(
-              reactApplicationContext, 0, explicitIntent, PendingIntent.FLAG_MUTABLE)
+              PendingIntent.getBroadcast(
+                      reactApplicationContext,
+                      0,
+                      explicitIntent,
+                      PendingIntent.FLAG_MUTABLE
+              )
 
       usbManager.requestPermission(device, permissionIntent)
     }
@@ -377,33 +400,33 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
     }
 
     val discoveryHandler =
-        object : DiscoveryHandler {
-          val printers = Arguments.createArray()
+            object : DiscoveryHandler {
+              val printers = Arguments.createArray()
 
-          override fun foundPrinter(printer: DiscoveredPrinter) {
-            try {
-              Log.d(NAME, "Found printer: $printer")
-              val printerNetwork = printer as DiscoveredPrinterNetwork
-              this.printers.pushMap(convertToWritableMap(printerNetwork))
-              Log.d(NAME, "Found printer: ${printerNetwork.address}")
-            } catch (e: Exception) {
-              Log.e(NAME, "Error adding printer to list: ${e.localizedMessage}")
-              promise.reject("E_NET_SCAN", e.localizedMessage, e)
-              e.localizedMessage?.let { Log.e(NAME, it) }
-              e.printStackTrace()
+              override fun foundPrinter(printer: DiscoveredPrinter) {
+                try {
+                  Log.d(NAME, "Found printer: $printer")
+                  val printerNetwork = printer as DiscoveredPrinterNetwork
+                  this.printers.pushMap(convertToWritableMap(printerNetwork))
+                  Log.d(NAME, "Found printer: ${printerNetwork.address}")
+                } catch (e: Exception) {
+                  Log.e(NAME, "Error adding printer to list: ${e.localizedMessage}")
+                  promise.reject("E_NET_SCAN", e.localizedMessage, e)
+                  e.localizedMessage?.let { Log.e(NAME, it) }
+                  e.printStackTrace()
+                }
+              }
+
+              override fun discoveryFinished() {
+                Log.d(NAME, "Discovery finished")
+                promise.resolve(this.printers)
+              }
+
+              override fun discoveryError(message: String?) {
+                Log.e(NAME, "Network discovery error: $message")
+                promise.reject("E_NET_SCAN", message)
+              }
             }
-          }
-
-          override fun discoveryFinished() {
-            Log.d(NAME, "Discovery finished")
-            promise.resolve(this.printers)
-          }
-
-          override fun discoveryError(message: String?) {
-            Log.e(NAME, "Network discovery error: $message")
-            promise.reject("E_NET_SCAN", message)
-          }
-        }
 
     try {
       Log.d(NAME, "Going to scan network")
@@ -427,32 +450,32 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
     }
 
     val discoveryHandler =
-        object : DiscoveryHandler {
-          val printers = Arguments.createArray()
+            object : DiscoveryHandler {
+              val printers = Arguments.createArray()
 
-          override fun foundPrinter(printer: DiscoveredPrinter) {
-            try {
-              val printerBluetooth = printer as DiscoveredPrinterBluetooth
-              this.printers.pushMap(convertToWritableMap(printerBluetooth))
-              Log.d(NAME, "Found printer: ${printerBluetooth.friendlyName}")
-            } catch (e: Exception) {
-              Log.e(NAME, "Error adding printer to list: ${e.localizedMessage}")
-              promise.reject("E_BT_SCAN", e.localizedMessage, e)
-              e.localizedMessage?.let { Log.e(NAME, it) }
-              e.printStackTrace()
+              override fun foundPrinter(printer: DiscoveredPrinter) {
+                try {
+                  val printerBluetooth = printer as DiscoveredPrinterBluetooth
+                  this.printers.pushMap(convertToWritableMap(printerBluetooth))
+                  Log.d(NAME, "Found printer: ${printerBluetooth.friendlyName}")
+                } catch (e: Exception) {
+                  Log.e(NAME, "Error adding printer to list: ${e.localizedMessage}")
+                  promise.reject("E_BT_SCAN", e.localizedMessage, e)
+                  e.localizedMessage?.let { Log.e(NAME, it) }
+                  e.printStackTrace()
+                }
+              }
+
+              override fun discoveryFinished() {
+                Log.d(NAME, "Discovery finished")
+                promise.resolve(this.printers)
+              }
+
+              override fun discoveryError(message: String?) {
+                Log.e(NAME, "Bluetooth discovery error: $message")
+                promise.reject("E_BT_SCAN", message)
+              }
             }
-          }
-
-          override fun discoveryFinished() {
-            Log.d(NAME, "Discovery finished")
-            promise.resolve(this.printers)
-          }
-
-          override fun discoveryError(message: String?) {
-            Log.e(NAME, "Bluetooth discovery error: $message")
-            promise.reject("E_BT_SCAN", message)
-          }
-        }
 
     try {
       Log.d(NAME, "Going to scan bluetooth")
@@ -476,32 +499,32 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
     }
 
     val discoveryHandler =
-        object : DiscoveryHandler {
-          val printers = Arguments.createArray()
+            object : DiscoveryHandler {
+              val printers = Arguments.createArray()
 
-          override fun foundPrinter(printer: DiscoveredPrinter) {
-            try {
-              val printerBluetoothLe = printer as DiscoveredPrinterBluetoothLe
-              this.printers.pushMap(convertToWritableMap(printerBluetoothLe))
-              Log.d(NAME, "Found printer: ${printerBluetoothLe.friendlyName}")
-            } catch (e: Exception) {
-              Log.e(NAME, "Error adding printer to list: ${e.localizedMessage}")
-              promise.reject("E_BLE_SCAN", e.localizedMessage, e)
-              e.localizedMessage?.let { Log.e(NAME, it) }
-              e.printStackTrace()
+              override fun foundPrinter(printer: DiscoveredPrinter) {
+                try {
+                  val printerBluetoothLe = printer as DiscoveredPrinterBluetoothLe
+                  this.printers.pushMap(convertToWritableMap(printerBluetoothLe))
+                  Log.d(NAME, "Found printer: ${printerBluetoothLe.friendlyName}")
+                } catch (e: Exception) {
+                  Log.e(NAME, "Error adding printer to list: ${e.localizedMessage}")
+                  promise.reject("E_BLE_SCAN", e.localizedMessage, e)
+                  e.localizedMessage?.let { Log.e(NAME, it) }
+                  e.printStackTrace()
+                }
+              }
+
+              override fun discoveryFinished() {
+                Log.d(NAME, "Discovery finished")
+                promise.resolve(this.printers)
+              }
+
+              override fun discoveryError(message: String?) {
+                Log.e(NAME, "Bluetooth discovery error: $message")
+                promise.reject("E_BLE_SCAN", message)
+              }
             }
-          }
-
-          override fun discoveryFinished() {
-            Log.d(NAME, "Discovery finished")
-            promise.resolve(this.printers)
-          }
-
-          override fun discoveryError(message: String?) {
-            Log.e(NAME, "Bluetooth discovery error: $message")
-            promise.reject("E_BLE_SCAN", message)
-          }
-        }
 
     try {
       Log.d(NAME, "Going to scan bluetooth LE")
@@ -526,32 +549,32 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
     }
 
     val discoveryHandler =
-        object : DiscoveryHandler {
-          val printers = Arguments.createArray()
+            object : DiscoveryHandler {
+              val printers = Arguments.createArray()
 
-          override fun foundPrinter(printer: DiscoveredPrinter) {
-            try {
-              val printerUSB = printer as DiscoveredPrinterUsb
-              this.printers.pushMap(convertToWritableMap(printerUSB))
-              Log.d(NAME, "Found USB printer: ${printerUSB.address}")
-            } catch (e: Exception) {
-              Log.e(NAME, "Error adding USB printer to list: ${e.localizedMessage}")
-              promise.reject("E_USB_SCAN", e.localizedMessage, e)
-              e.localizedMessage?.let { Log.e(NAME, it) }
-              e.printStackTrace()
+              override fun foundPrinter(printer: DiscoveredPrinter) {
+                try {
+                  val printerUSB = printer as DiscoveredPrinterUsb
+                  this.printers.pushMap(convertToWritableMap(printerUSB))
+                  Log.d(NAME, "Found USB printer: ${printerUSB.address}")
+                } catch (e: Exception) {
+                  Log.e(NAME, "Error adding USB printer to list: ${e.localizedMessage}")
+                  promise.reject("E_USB_SCAN", e.localizedMessage, e)
+                  e.localizedMessage?.let { Log.e(NAME, it) }
+                  e.printStackTrace()
+                }
+              }
+
+              override fun discoveryFinished() {
+                Log.d(NAME, "USB discovery finished")
+                promise.resolve(this.printers)
+              }
+
+              override fun discoveryError(message: String?) {
+                Log.e(NAME, "USB discovery error: $message")
+                promise.reject("E_USB_SCAN", message)
+              }
             }
-          }
-
-          override fun discoveryFinished() {
-            Log.d(NAME, "USB discovery finished")
-            promise.resolve(this.printers)
-          }
-
-          override fun discoveryError(message: String?) {
-            Log.e(NAME, "USB discovery error: $message")
-            promise.reject("E_USB_SCAN", message)
-          }
-        }
 
     try {
       Log.d(NAME, "Going to scan USB")
@@ -565,8 +588,8 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
   }
 
   private fun convertStatusToWritableMap(
-      printerAddress: String,
-      status: PrinterStatus
+          printerAddress: String,
+          status: PrinterStatus
   ): WritableMap {
     val map = Arguments.createMap()
     map.putString("address", printerAddress)
@@ -598,7 +621,6 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
       val printerStatus = printer.currentStatus
 
       val printerStatusMap = convertStatusToWritableMap(ipAddress, printerStatus)
-
 
       promise.resolve(printerStatusMap)
     } catch (e: ConnectionException) {
@@ -694,21 +716,29 @@ class ZebraLinkosModule internal constructor(reactContext: ReactApplicationConte
       if (!usbReceiverRegistered) {
         val filter = IntentFilter(ACTION_USB_PERMISSION)
         ContextCompat.registerReceiver(
-            reactApplicationContext, usbReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+                reactApplicationContext,
+                usbReceiver,
+                filter,
+                ContextCompat.RECEIVER_NOT_EXPORTED
+        )
         usbReceiverRegistered = true
       }
 
       val explicitIntent =
-          Intent(ACTION_USB_PERMISSION).apply {
-            setPackage(reactApplicationContext.packageName)
-            putExtra(UsbManager.EXTRA_DEVICE, device)
-            putExtra("Mode", "Status")
-            putExtra("deviceId", deviceId)
-          }
+              Intent(ACTION_USB_PERMISSION).apply {
+                setPackage(reactApplicationContext.packageName)
+                putExtra(UsbManager.EXTRA_DEVICE, device)
+                putExtra("Mode", "Status")
+                putExtra("deviceId", deviceId)
+              }
 
       val permissionIntent =
-          PendingIntent.getBroadcast(
-              reactApplicationContext, 0, explicitIntent, PendingIntent.FLAG_MUTABLE)
+              PendingIntent.getBroadcast(
+                      reactApplicationContext,
+                      0,
+                      explicitIntent,
+                      PendingIntent.FLAG_MUTABLE
+              )
 
       usbManager.requestPermission(device, permissionIntent)
     }

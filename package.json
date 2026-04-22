@@ -1,6 +1,6 @@
 {
   "name": "react-native-zebra-linkos",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Zebra LinkOS integration for React Native",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
@@ -42,7 +42,7 @@
     "typecheck": "tsc",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
-    "prepare": "bob build",
+    "postinstall": "npx -y react-native-builder-bob build",
     "release": "release-it"
   },
   "keywords": [
