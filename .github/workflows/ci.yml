@@ -153,20 +153,12 @@ jobs:
             ${{ runner.os }}-cocoapods-
 
       - name: Install cocoapods
-        if: steps.check-turbo-cache.outputs.hit != 'true' &&
-          steps.cocoapods-cache.outputs.cache-hit != 'true'
+        if: steps.check-turbo-cache.outputs.hit != 'true'
         run: |
           cd example/ios
           pod install --repo-update
         env:
           NO_FLIPPER: 1
-
-      - name: Generate Podfile.lock for caching
-        if: steps.check-turbo-cache.outputs.hit != 'true' &&
-          steps.cocoapods-cache.outputs.cache-hit != 'true'
-        run: |
-          cd example/ios
-          pod install
 
       - name: Build example for iOS
         run: |
