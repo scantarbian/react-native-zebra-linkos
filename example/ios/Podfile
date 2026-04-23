@@ -9,3 +9,6 @@ require "#{ws_dir}/node_modules/react-native-test-app/test_app.rb"
 workspace 'ZebraLinkosExample.xcworkspace'
 
 use_test_app!
+
+# Explicitly include the native module
+pod 'react-native-zebra-linkos', :path => '../..'
