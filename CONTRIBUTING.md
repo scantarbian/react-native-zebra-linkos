@@ -105,6 +105,8 @@ To publish new versions, run the following:
 yarn release
 ```
 
+> Note: This package is published to GitHub Packages under the `@viska-io` scope. Ensure you have authenticated with `npm.pkg.github.com` before publishing.
+
 ### Scripts
 
 The `package.json` file contains various scripts for common tasks:
