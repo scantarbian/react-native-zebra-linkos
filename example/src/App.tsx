@@ -22,12 +22,12 @@ import {
   checkBTPrinterStatus,
   checkTCPPrinterStatus,
   checkUSBPrinterStatus,
-} from 'react-native-zebra-linkos';
+} from '@viska-io/react-native-zebra-linkos';
 import type {
   DiscoveredPrinter,
   DiscoveredPrinterBluetooth,
   DiscoveredPrinterBluetoothLe,
-} from 'react-native-zebra-linkos';
+} from '@viska-io/react-native-zebra-linkos';
 import type { PrinterStatus } from '../../src/@types';
 
 const App = () => {

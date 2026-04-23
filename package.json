@@ -1,5 +1,5 @@
 {
-  "name": "react-native-zebra-linkos",
+  "name": "@viska-io/react-native-zebra-linkos",
   "version": "0.2.2",
   "description": "Zebra LinkOS integration for React Native",
   "source": "./src/index.tsx",
@@ -52,16 +52,16 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/scantarbian/react-native-zebra-linkos.git"
+    "url": "git+https://github.com/VISKA-IO/react-native-zebra-linkos.git"
   },
   "author": "scantarbian <davidpamereanb@gmail.com> (https://github.com/scantarbian)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/scantarbian/react-native-zebra-linkos/issues"
+    "url": "https://github.com/VISKA-IO/react-native-zebra-linkos/issues"
   },
-  "homepage": "https://github.com/scantarbian/react-native-zebra-linkos#readme",
+  "homepage": "https://github.com/VISKA-IO/react-native-zebra-linkos#readme",
   "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
+    "registry": "https://npm.pkg.github.com"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^17.0.2",

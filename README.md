@@ -1,24 +1,22 @@
-# react-native-zebra-linkos
+# @viska-io/react-native-zebra-linkos
 
 Zebra LinkOS integration for React Native
 
 ## Installation
 
 ```sh
-npm install react-native-zebra-linkos
+npm install @viska-io/react-native-zebra-linkos
 ```
 
 ## Usage
 
-
 ```js
-import { multiply } from 'react-native-zebra-linkos';
+import { writeTCP, scanNetwork } from '@viska-io/react-native-zebra-linkos';
 
 // ...
 
 const result = multiply(3, 7);
 ```
-
 
 ## Contributing
 
