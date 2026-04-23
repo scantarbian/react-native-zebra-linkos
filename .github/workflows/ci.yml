@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup
         uses: ./.github/actions/setup
@@ -42,13 +42,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup
         uses: ./.github/actions/setup
 
       - name: Build package
-        run: yarn postinstall
+        run: yarn prepare
 
   build-android:
     runs-on: ubuntu-latest
@@ -56,13 +56,13 @@ jobs:
       TURBO_CACHE_DIR: .turbo/android
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup
         uses: ./.github/actions/setup
 
       - name: Cache turborepo for Android
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ env.TURBO_CACHE_DIR }}
           key: ${{ runner.os }}-turborepo-android-${{ hashFiles('yarn.lock') }}
@@ -81,8 +81,8 @@ jobs:
           fi
 
       - name: Install JDK
-        if: steps.check-turbo-cache.outputs.hit != 'true'
-        uses: actions/setup-java@v3
+        if: env.turbo_cache_hit != 1
+        uses: actions/setup-java@v4
         with:
           distribution: "zulu"
           java-version: "17"
@@ -93,8 +93,8 @@ jobs:
           /bin/bash -c "yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null"
 
       - name: Cache Gradle
-        if: steps.check-turbo-cache.outputs.hit != 'true'
-        uses: actions/cache@v3
+        if: env.turbo_cache_hit != 1
+        uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/wrapper
@@ -117,13 +117,13 @@ jobs:
       TURBO_CACHE_DIR: .turbo/ios
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup
         uses: ./.github/actions/setup
 
       - name: Cache turborepo for iOS
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ env.TURBO_CACHE_DIR }}
           key: ${{ runner.os }}-turborepo-ios-${{ hashFiles('yarn.lock') }}
@@ -144,7 +144,7 @@ jobs:
       - name: Cache cocoapods
         if: steps.check-turbo-cache.outputs.hit != 'true'
         id: cocoapods-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             **/ios/Pods
@@ -153,20 +153,12 @@ jobs:
             ${{ runner.os }}-cocoapods-
 
       - name: Install cocoapods
-        if: steps.check-turbo-cache.outputs.hit != 'true' &&
-          steps.cocoapods-cache.outputs.cache-hit != 'true'
+        if: steps.check-turbo-cache.outputs.hit != 'true'
         run: |
           cd example/ios
           pod install --repo-update
         env:
           NO_FLIPPER: 1
-
-      - name: Generate Podfile.lock for caching
-        if: steps.check-turbo-cache.outputs.hit != 'true' &&
-          steps.cocoapods-cache.outputs.cache-hit != 'true'
-        run: |
-          cd example/ios
-          pod install
 
       - name: Build example for iOS
         run: |
