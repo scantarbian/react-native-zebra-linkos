@@ -2,7 +2,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "paths": {
-      "react-native-zebra-linkos": ["./src/index"]
+      "@viska-io/react-native-zebra-linkos": ["./src/index"]
     },
     "types": ["jest"],
     "allowUnreachableCode": false,
